@@ -60,13 +60,11 @@ def get_google_trends_data(
     geo
 ):
 
-    pytrends = TrendReq(
-        hl="en-US",
-        tz=360,
-        timeout=(10, 25),
-        retries=2,
-        backoff_factor=0.5
-    )
+pytrends = TrendReq(
+    hl="en-US",
+    tz=360,
+    timeout=(10, 25)
+)
 
     pytrends.build_payload(
         companies,
