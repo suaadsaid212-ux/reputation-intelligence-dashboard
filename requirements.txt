@@ -10,3 +10,4 @@ wordcloud
 matplotlib
 vaderSentiment
 textblob
+pytrends
