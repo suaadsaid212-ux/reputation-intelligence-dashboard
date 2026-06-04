@@ -1,17 +1,25 @@
-Entity_ID,Entity_Name,Short_Name,Entity_Type,Ticker,Country,Sector,Industry,Data_Source_Type,Priority,News_Query,Google_Trends_Query,Search_Query,YouTube_Query,Website,CIK
-TESLA,Tesla_Inc,Tesla,Company,TSLA,USA,Automotive,Electric_Vehicles,Financial,High,Tesla,Tesla,Tesla,Tesla,https://www.tesla.com,0001318605
-MSFT,Microsoft_Corporation,Microsoft,Company,MSFT,USA,Technology,Software,Financial,High,Microsoft,Microsoft,Microsoft,Microsoft,https://www.microsoft.com,0000789019
-NESTLE,Nestle_SA,Nestle,Company,NSRGY,Switzerland,Consumer_Goods,Food_and_Beverage,Financial,High,Nestle,Nestle,Nestle,Nestle,https://www.nestle.com,
-APPLE,Apple_Inc,Apple,Company,AAPL,USA,Technology,Consumer_Electronics,Financial,High,Apple,Apple,Apple,Apple,https://www.apple.com,0000320193
-GOOGLE,Alphabet_Inc,Google,Company,GOOGL,USA,Technology,Internet_Services,Financial,High,Alphabet Google,Google,Google,Google,https://abc.xyz,0001652044
-UNICEF,United_Nations_Childrens_Fund,UNICEF,International_Organization,,Global,Development,Humanitarian,Institutional,High,UNICEF,UNICEF,UNICEF,UNICEF,https://www.unicef.org,
-WHO,World_Health_Organization,WHO,International_Organization,,Global,Health,Public_Health,Institutional,High,World Health Organization,World Health Organization,WHO,World Health Organization,https://www.who.int,
-UNDP,United_Nations_Development_Programme,UNDP,International_Organization,,Global,Development,Humanitarian,Institutional,High,UNDP,UNDP,UNDP,UNDP,https://www.undp.org,
-KFU,Kazan_Federal_University,KFU,University,,Russia,Education,Higher_Education,Institutional,Critical,Kazan Federal University,Kazan Federal University,Kazan Federal University,Kazan Federal University,https://kpfu.ru,
-CARDIFF,Cardiff_University,Cardiff,University,,United_Kingdom,Education,Higher_Education,Institutional,High,Cardiff University,Cardiff University,Cardiff University,Cardiff University,https://www.cardiff.ac.uk,
-SQU,Sultan_Qaboos_University,SQU,University,,Oman,Education,Higher_Education,Institutional,High,Sultan Qaboos University,Sultan Qaboos University,Sultan Qaboos University,Sultan Qaboos University,https://www.squ.edu.om,
-UKGOV,UK_Government,UK_Gov,Government,,United_Kingdom,Public_Sector,Government,Government,High,UK Government,UK Government,UK Government,UK Government,https://www.gov.uk,
-OMANGOV,Oman_Government,Oman_Gov,Government,,Oman,Public_Sector,Government,Government,High,Oman Government,Oman Government,Oman Government,Oman Government,https://www.oman.om,
-OQ,OQ_Group,OQ,Company,,Oman,Energy,Oil_and_Gas,Institutional,High,OQ Group,OQ Group,OQ Oman,OQ Group,https://oq.com,
-OMANTEL,Omantel,Omantel,Company,,Oman,Telecommunications,Telecom,Institutional,High,Omantel,Omantel,Omantel,Omantel,https://www.omantel.om,
-BANKMUSCAT,Bank_Muscat,Bank_Muscat,Company,,Oman,Financial_Services,Banking,Institutional,High,Bank Muscat,Bank Muscat,Bank Muscat,Bank Muscat,https://www.bankmuscat.com,
+AMZN,Amazon_Inc,Amazon,Company,AMZN,USA,Technology,Ecommerce_and_Cloud,Financial,High,Amazon,Amazon,Amazon,Amazon,https://www.amazon.com,0001018724
+META,Meta_Platforms,Meta,Company,META,USA,Technology,Social_Media,Financial,High,Meta Platforms,Meta,Meta Facebook,Meta,https://about.meta.com,0001326801
+NVDA,Nvidia_Corporation,Nvidia,Company,NVDA,USA,Technology,Semiconductors,Financial,High,Nvidia,Nvidia,Nvidia,Nvidia,https://www.nvidia.com,0001045810
+IBM,IBM_Corporation,IBM,Company,IBM,USA,Technology,Enterprise_Technology,Financial,Medium,IBM,IBM,IBM,IBM,https://www.ibm.com,0000051143
+INTEL,Intel_Corporation,Intel,Company,INTC,USA,Technology,Semiconductors,Financial,Medium,Intel,Intel,Intel,Intel,https://www.intel.com,0000050863
+JPM,JPMorgan_Chase,JPMorgan,Company,JPM,USA,Financial_Services,Banking,Financial,High,JPMorgan Chase,JPMorgan,JPMorgan Chase,JPMorgan Chase,https://www.jpmorganchase.com,0000019617
+XOM,Exxon_Mobil,ExxonMobil,Company,XOM,USA,Energy,Oil_and_Gas,Financial,High,Exxon Mobil,ExxonMobil,Exxon Mobil,ExxonMobil,https://corporate.exxonmobil.com,0000034088
+WMT,Walmart_Inc,Walmart,Company,WMT,USA,Consumer_Goods,Retail,Financial,High,Walmart,Walmart,Walmart,Walmart,https://www.walmart.com,0000104169
+KO,Coca_Cola_Company,CocaCola,Company,KO,USA,Consumer_Goods,Beverages,Financial,Medium,Coca Cola,Coca Cola,Coca Cola,Coca Cola,https://www.coca-colacompany.com,0000021344
+PFE,Pfizer_Inc,Pfizer,Company,PFE,USA,Health,Pharmaceuticals,Financial,High,Pfizer,Pfizer,Pfizer,Pfizer,https://www.pfizer.com,0000078003
+JNJ,Johnson_and_Johnson,JohnsonJohnson,Company,JNJ,USA,Health,Healthcare,Financial,High,Johnson and Johnson,Johnson and Johnson,Johnson and Johnson,Johnson and Johnson,https://www.jnj.com,0000200406
+BA,Boeing_Company,Boeing,Company,BA,USA,Aerospace,Aviation,Financial,High,Boeing,Boeing,Boeing,Boeing,https://www.boeing.com,0000012927
+TM,Toyota_Motor_Corporation,Toyota,Company,TM,Japan,Automotive,Automotive_Manufacturing,Financial,High,Toyota,Toyota,Toyota,Toyota,https://global.toyota,
+SONY,Sony_Group,Sony,Company,SONY,Japan,Technology,Consumer_Electronics,Financial,Medium,Sony,Sony,Sony,Sony,https://www.sony.com,
+BABA,Alibaba_Group,Alibaba,Company,BABA,China,Technology,Ecommerce,Financial,High,Alibaba,Alibaba,Alibaba,Alibaba,https://www.alibabagroup.com,0001577552
+HSBC,HSBC_Holdings,HSBC,Company,HSBC,United_Kingdom,Financial_Services,Banking,Financial,High,HSBC,HSBC,HSBC,HSBC,https://www.hsbc.com,
+BP,BP_PLC,BP,Company,BP,United_Kingdom,Energy,Oil_and_Gas,Financial,High,BP,BP,BP energy,BP,https://www.bp.com,
+SHELL,Shell_PLC,Shell,Company,SHEL,United_Kingdom,Energy,Oil_and_Gas,Financial,High,Shell,Shell,Shell energy,Shell,https://www.shell.com,
+OXFORD,University_of_Oxford,Oxford,University,,United_Kingdom,Education,Higher_Education,Institutional,High,University of Oxford,University of Oxford,University of Oxford,University of Oxford,https://www.ox.ac.uk,
+CAMBRIDGE,University_of_Cambridge,Cambridge,University,,United_Kingdom,Education,Higher_Education,Institutional,High,University of Cambridge,University of Cambridge,University of Cambridge,University of Cambridge,https://www.cam.ac.uk,
+HARVARD,Harvard_University,Harvard,University,,USA,Education,Higher_Education,Institutional,High,Harvard University,Harvard University,Harvard University,Harvard University,https://www.harvard.edu,
+MIT,Massachusetts_Institute_of_Technology,MIT,University,,USA,Education,Higher_Education,Institutional,High,MIT,MIT,Massachusetts Institute of Technology,MIT,https://www.mit.edu,
+WORLD_BANK,World_Bank,World_Bank,International_Organization,,Global,Development,International_Finance,Institutional,High,World Bank,World Bank,World Bank,World Bank,https://www.worldbank.org,
+IMF,International_Monetary_Fund,IMF,International_Organization,,Global,Financial_Services,International_Finance,Institutional,High,International Monetary Fund,IMF,International Monetary Fund,IMF,https://www.imf.org,
+EU,European_Union,EU,Government,,Global,Public_Sector,Supranational_Government,Government,High,European Union,European Union,European Union,European Union,https://european-union.europa.eu,
