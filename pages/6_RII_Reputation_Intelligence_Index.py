@@ -7,8 +7,9 @@ import plotly.graph_objects as go
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from textblob import TextBlob
+from urllib.parse import quote_plus
 
-from utils.entity_selector import get_entity
+from utils.entity_selector import get_entity, get_entity_query
 
 st.set_page_config(
     page_title="RII Reputation Intelligence Index",
@@ -19,15 +20,17 @@ st.set_page_config(
 entity = get_entity()
 
 entity_name = entity["Entity_Name"]
+display_name = entity["Short_Name"]
 entity_type = entity["Entity_Type"]
-ticker = str(entity["Ticker"]).strip()
+ticker = str(entity.get("Ticker", "")).strip()
+news_query = get_entity_query(entity, "News_Query")
 
 st.title("🏆 Reputation Intelligence Index (RII)")
 
 st.markdown(f"""
 ### Reputation Risk Assessment
 
-**Selected Entity:** {entity_name}
+**Selected Entity:** {display_name}
 
 RII measures organizational reputation risk using:
 
@@ -43,6 +46,8 @@ c2.metric("Country", entity["Country"])
 c3.metric("Sector", entity["Sector"])
 c4.metric("Priority", entity["Priority"])
 
+st.caption(f"News query: {news_query}")
+
 st.divider()
 
 start_date = st.sidebar.selectbox(
@@ -57,8 +62,10 @@ start_date = st.sidebar.selectbox(
 
 analyzer = SentimentIntensityAnalyzer()
 
+encoded_query = quote_plus(news_query)
+
 feed = feedparser.parse(
-    f"https://news.google.com/rss/search?q={entity_name}"
+    f"https://news.google.com/rss/search?q={encoded_query}&hl=en-US&gl=US&ceid=US:en"
 )
 
 headlines = []
@@ -76,7 +83,8 @@ for entry in feed.entries[:25]:
     subjectivity_scores.append(subjectivity)
 
 if len(sentiment_scores) == 0:
-    st.warning("No news data found.")
+    st.warning("No news data found for this entity.")
+    st.info("Try checking the News_Query value in config/entity_registry.csv.")
     st.stop()
 
 financial_volatility = 0
@@ -94,7 +102,8 @@ if entity_type == "Company" and ticker and ticker.lower() != "nan":
             stock["Returns"] = stock["Close"].pct_change()
             financial_volatility = float(stock["Returns"].std())
 
-    except Exception:
+    except Exception as error:
+        st.sidebar.warning(f"Financial data unavailable: {error}")
         financial_volatility = 0
 
 news_volume = len(headlines)
@@ -107,8 +116,8 @@ positive_ratio = len(
     [s for s in sentiment_scores if s >= 0.3]
 ) / len(sentiment_scores)
 
-sentiment_volatility = np.std(sentiment_scores)
-avg_subjectivity = np.mean(subjectivity_scores)
+sentiment_volatility = float(np.std(sentiment_scores))
+avg_subjectivity = float(np.mean(subjectivity_scores))
 
 exposure_score = min(100, (news_volume / 25) * 100)
 
@@ -195,7 +204,7 @@ radar.add_trace(
             "RII",
         ],
         fill="toself",
-        name=entity_name,
+        name=display_name,
     )
 )
 
@@ -215,6 +224,8 @@ st.subheader("Latest News Headlines")
 
 headline_df = pd.DataFrame({
     "Headline": headlines,
+    "Sentiment": sentiment_scores,
+    "Subjectivity": subjectivity_scores,
 })
 
 st.dataframe(headline_df, use_container_width=True)
@@ -222,7 +233,11 @@ st.dataframe(headline_df, use_container_width=True)
 st.subheader("Executive Interpretation")
 
 st.info(f"""
-Entity: {entity_name}
+Entity: {display_name}
+
+Internal ID: {entity_name}
+
+News Query: {news_query}
 
 RII Score: {round(rii, 2)}
 
