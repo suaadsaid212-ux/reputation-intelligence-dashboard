@@ -1,399 +1,524 @@
+from pytrends.request import TrendReq
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
-from pytrends.request import TrendReq
 
+from utils.entity_selector import get_entity
 
 st.set_page_config(
-    page_title="Google Trends Intelligence",
-    layout="wide"
+page_title="Google Trends Intelligence",
+page_icon="📈",
+layout="wide"
 )
 
-st.title("Google Trends Intelligence")
+# ====================================
 
-st.write(
-    "This page analyzes public search interest, search momentum, "
-    "search volatility, and geographic search exposure."
+# ENTITY SELECTION
+
+# ====================================
+
+entity = get_entity()
+
+primary_entity = entity["Entity_Name"]
+
+# ====================================
+
+# PAGE HEADER
+
+# ====================================
+
+st.title("📈 Google Trends Intelligence")
+
+st.markdown(f"""
+
+### Search Intelligence Monitoring
+
+**Selected Entity:** {primary_entity}
+
+This module evaluates:
+
+* Search Interest
+* Search Momentum
+* Search Volatility
+* Geographic Exposure
+* Search Risk Index (SRI)
+  """)
+
+# ====================================
+
+# ENTITY PROFILE
+
+# ====================================
+
+c1, c2, c3, c4 = st.columns(4)
+
+c1.metric(
+"Type",
+entity["Entity_Type"]
 )
 
-company_input = st.sidebar.text_input(
-    "Enter company names or tickers",
-    "Tesla"
+c2.metric(
+"Country",
+entity["Country"]
+)
+
+c3.metric(
+"Sector",
+entity["Sector"]
+)
+
+c4.metric(
+"Priority",
+entity["Priority"]
+)
+
+st.divider()
+
+# ====================================
+
+# SETTINGS
+
+# ====================================
+
+comparison_input = st.sidebar.text_input(
+"Compare With (Optional)",
+""
 )
 
 timeframe = st.sidebar.selectbox(
-    "Google Trends Period",
-    [
-        "today 12-m",
-        "today 5-y",
-        "today 3-m",
-        "today 1-m"
-    ]
+"Google Trends Period",
+[
+"today 12-m",
+"today 5-y",
+"today 3-m",
+"today 1-m"
+]
 )
 
 geo = st.sidebar.text_input(
-    "Country code, optional",
-    ""
+"Country Code (Optional)",
+""
 )
 
-companies = [
-    c.strip()
-    for c in company_input.split(",")
-    if c.strip() != ""
+companies = [primary_entity]
+
+if comparison_input:
+
+```
+additional = [
+    x.strip()
+    for x in comparison_input.split(",")
+    if x.strip()
 ]
 
-if len(companies) == 0:
-    st.error("Please enter at least one company name.")
-    st.stop()
+companies.extend(additional)
+```
 
-if len(companies) > 5:
-    st.warning(
-        "Google Trends allows comparison of up to 5 terms at a time. "
-        "Only the first 5 terms will be used."
-    )
-    companies = companies[:5]
+companies = companies[:5]
 
+# ====================================
 
-@st.cache_data(ttl=3600)
-def get_google_trends_data(companies, timeframe, geo):
-    pytrends = TrendReq(
-        hl="en-US",
-        tz=360,
-        timeout=(10, 25)
-    )
+# GOOGLE TRENDS FUNCTIONS
 
-    pytrends.build_payload(
-        companies,
-        cat=0,
-        timeframe=timeframe,
-        geo=geo,
-        gprop=""
-    )
-
-    return pytrends.interest_over_time()
-
+# ====================================
 
 @st.cache_data(ttl=3600)
-def get_google_geo_data(companies, timeframe, geo):
-    pytrends = TrendReq(
-        hl="en-US",
-        tz=360,
-        timeout=(10, 25)
-    )
+def get_google_trends_data(
+companies,
+timeframe,
+geo
+):
 
-    pytrends.build_payload(
-        companies,
-        cat=0,
-        timeframe=timeframe,
-        geo=geo,
-        gprop=""
-    )
+```
+pytrends = TrendReq(
+    hl="en-US",
+    tz=360,
+    timeout=(10, 25)
+)
 
-    return pytrends.interest_by_region(
-        resolution="COUNTRY",
-        inc_low_vol=True,
-        inc_geo_code=False
-    )
+pytrends.build_payload(
+    companies,
+    cat=0,
+    timeframe=timeframe,
+    geo=geo,
+    gprop=""
+)
 
+return pytrends.interest_over_time()
+```
+
+@st.cache_data(ttl=3600)
+def get_google_geo_data(
+companies,
+timeframe,
+geo
+):
+
+```
+pytrends = TrendReq(
+    hl="en-US",
+    tz=360,
+    timeout=(10, 25)
+)
+
+pytrends.build_payload(
+    companies,
+    cat=0,
+    timeframe=timeframe,
+    geo=geo,
+    gprop=""
+)
+
+return pytrends.interest_by_region(
+    resolution="COUNTRY",
+    inc_low_vol=True,
+    inc_geo_code=False
+)
+```
+
+# ====================================
+
+# LOAD TRENDS
+
+# ====================================
 
 try:
-    trends_df = get_google_trends_data(
-        companies,
-        timeframe,
-        geo
-    )
+
+```
+trends_df = get_google_trends_data(
+    companies,
+    timeframe,
+    geo
+)
+```
 
 except Exception as e:
-    st.error(
-        "Google Trends data could not be loaded. "
-        "This usually happens because Google temporarily blocks too many requests."
-    )
 
-    st.info(
-        "Try one company only, use 'today 12-m', wait a few minutes, "
-        "then refresh the page."
-    )
+```
+st.error(
+    "Google Trends data could not be loaded."
+)
 
-    st.code(str(e))
-    st.stop()
+st.code(str(e))
 
+st.stop()
+```
 
 if trends_df.empty:
-    st.error("No Google Trends data found.")
-    st.stop()
 
+```
+st.warning(
+    "No Google Trends data available."
+)
+
+st.stop()
+```
 
 if "isPartial" in trends_df.columns:
-    trends_df = trends_df.drop(
-        columns=["isPartial"]
-    )
 
+```
+trends_df = trends_df.drop(
+    columns=["isPartial"]
+)
+```
+
+# ====================================
+
+# TIMELINE
+
+# ====================================
 
 st.subheader("Search Interest Timeline")
 
 timeline_fig = go.Figure()
 
 for company in companies:
-    if company in trends_df.columns:
-        timeline_fig.add_trace(
-            go.Scatter(
-                x=trends_df.index,
-                y=trends_df[company],
-                mode="lines",
-                name=company
-            )
+
+```
+if company in trends_df.columns:
+
+    timeline_fig.add_trace(
+        go.Scatter(
+            x=trends_df.index,
+            y=trends_df[company],
+            mode="lines",
+            name=company
         )
+    )
+```
 
 timeline_fig.update_layout(
-    template="plotly_dark",
-    height=600,
-    xaxis_title="Date",
-    yaxis_title="Search Interest"
+height=600,
+xaxis_title="Date",
+yaxis_title="Search Interest"
 )
 
 st.plotly_chart(
-    timeline_fig,
-    use_container_width=True
+timeline_fig,
+use_container_width=True
 )
 
+# ====================================
+
+# SEARCH INTELLIGENCE METRICS
+
+# ====================================
 
 summary_rows = []
 
 for company in companies:
-    if company not in trends_df.columns:
-        continue
 
-    series = trends_df[company]
+```
+if company not in trends_df.columns:
+    continue
 
-    avg_interest = series.mean()
-    max_interest = series.max()
-    volatility = series.std()
+series = trends_df[company]
 
-    first_value = series.iloc[0]
-    last_value = series.iloc[-1]
+avg_interest = series.mean()
 
-    if first_value == 0:
-        momentum = 0
-    else:
-        momentum = ((last_value - first_value) / first_value) * 100
+max_interest = series.max()
 
-    search_risk_index = (
-        (0.40 * avg_interest)
-        + (0.35 * volatility)
-        + (0.25 * abs(momentum))
-    )
+volatility = series.std()
 
-    summary_rows.append(
-        {
-            "Company": company,
-            "Average Search Interest": round(float(avg_interest), 2),
-            "Maximum Search Interest": round(float(max_interest), 2),
-            "Search Volatility": round(float(volatility), 2),
-            "Search Momentum %": round(float(momentum), 2),
-            "Search Risk Index": round(float(search_risk_index), 2)
-        }
-    )
+first_value = series.iloc[0]
 
-summary_df = pd.DataFrame(summary_rows)
+last_value = series.iloc[-1]
 
-st.subheader("Search Intelligence Summary")
+if first_value == 0:
+    momentum = 0
+
+else:
+    momentum = (
+        (
+            last_value -
+            first_value
+        )
+        /
+        first_value
+    ) * 100
+
+sri = (
+    (0.40 * avg_interest)
+    +
+    (0.35 * volatility)
+    +
+    (0.25 * abs(momentum))
+)
+
+summary_rows.append({
+
+    "Company": company,
+
+    "Average Search Interest":
+    round(avg_interest, 2),
+
+    "Maximum Search Interest":
+    round(max_interest, 2),
+
+    "Search Volatility":
+    round(volatility, 2),
+
+    "Search Momentum %":
+    round(momentum, 2),
+
+    "Search Risk Index":
+    round(sri, 2)
+
+})
+```
+
+summary_df = pd.DataFrame(
+summary_rows
+)
+
+# ====================================
+
+# EXECUTIVE KPIs
+
+# ====================================
+
+if not summary_df.empty:
+
+```
+avg_interest = round(
+    summary_df[
+        "Average Search Interest"
+    ].mean(),
+    2
+)
+
+avg_volatility = round(
+    summary_df[
+        "Search Volatility"
+    ].mean(),
+    2
+)
+
+avg_momentum = round(
+    summary_df[
+        "Search Momentum %"
+    ].mean(),
+    2
+)
+
+avg_sri = round(
+    summary_df[
+        "Search Risk Index"
+    ].mean(),
+    2
+)
+
+st.subheader(
+    "Executive Search KPIs"
+)
+
+k1, k2, k3, k4 = st.columns(4)
+
+k1.metric(
+    "Avg Search Interest",
+    avg_interest
+)
+
+k2.metric(
+    "Avg Volatility",
+    avg_volatility
+)
+
+k3.metric(
+    "Avg Momentum %",
+    avg_momentum
+)
+
+k4.metric(
+    "Avg SRI",
+    avg_sri
+)
+```
+
+# ====================================
+
+# SUMMARY TABLE
+
+# ====================================
+
+st.subheader(
+"Search Intelligence Summary"
+)
 
 st.dataframe(
-    summary_df,
-    use_container_width=True
+summary_df,
+use_container_width=True
 )
 
-if summary_df.empty:
-    st.warning("No summary data available.")
-    st.stop()
+# ====================================
 
+# RANKING
 
-st.subheader("Search Risk Index Ranking")
+# ====================================
 
 ranking_df = summary_df.sort_values(
-    by="Search Risk Index",
-    ascending=False
+by="Search Risk Index",
+ascending=False
 )
 
-ranking_fig = go.Figure()
-
-ranking_fig.add_trace(
-    go.Bar(
-        x=ranking_df["Company"],
-        y=ranking_df["Search Risk Index"],
-        text=ranking_df["Search Risk Index"],
-        textposition="auto"
-    )
+st.subheader(
+"Search Risk Index Ranking"
 )
 
-ranking_fig.update_layout(
-    template="plotly_dark",
-    height=500,
-    yaxis_title="Search Risk Index"
+st.bar_chart(
+ranking_df.set_index(
+"Company"
+)["Search Risk Index"]
 )
 
-st.plotly_chart(
-    ranking_fig,
-    use_container_width=True
+# ====================================
+
+# GEOGRAPHIC EXPOSURE
+
+# ====================================
+
+st.subheader(
+"Geographic Search Exposure"
 )
-
-
-st.subheader("Search Volatility Comparison")
-
-volatility_fig = go.Figure()
-
-volatility_fig.add_trace(
-    go.Bar(
-        x=summary_df["Company"],
-        y=summary_df["Search Volatility"],
-        text=summary_df["Search Volatility"],
-        textposition="auto"
-    )
-)
-
-volatility_fig.update_layout(
-    template="plotly_dark",
-    height=500,
-    yaxis_title="Search Volatility"
-)
-
-st.plotly_chart(
-    volatility_fig,
-    use_container_width=True
-)
-
-
-st.subheader("Search Momentum Comparison")
-
-momentum_fig = go.Figure()
-
-momentum_fig.add_trace(
-    go.Bar(
-        x=summary_df["Company"],
-        y=summary_df["Search Momentum %"],
-        text=summary_df["Search Momentum %"],
-        textposition="auto"
-    )
-)
-
-momentum_fig.update_layout(
-    template="plotly_dark",
-    height=500,
-    yaxis_title="Search Momentum %"
-)
-
-st.plotly_chart(
-    momentum_fig,
-    use_container_width=True
-)
-
-
-st.subheader("Geographic Search Exposure")
 
 selected_company = st.selectbox(
-    "Select company for geographic exposure",
-    companies
+"Select Entity",
+companies
 )
 
 try:
-    geo_df = get_google_geo_data(
-        companies,
-        timeframe,
-        geo
+
+```
+geo_df = get_google_geo_data(
+    companies,
+    timeframe,
+    geo
+)
+```
+
+except:
+
+```
+geo_df = pd.DataFrame()
+```
+
+if (
+not geo_df.empty
+and
+selected_company in geo_df.columns
+):
+
+```
+country_exposure = (
+    geo_df[
+        [selected_company]
+    ]
+    .reset_index()
+    .sort_values(
+        by=selected_company,
+        ascending=False
     )
+    .head(20)
+)
 
-except Exception as e:
-    st.warning(
-        "Geographic search exposure could not be loaded. "
-        "This can happen when Google Trends rate-limits requests."
-    )
+st.dataframe(
+    country_exposure,
+    use_container_width=True
+)
+```
 
-    st.code(str(e))
-    geo_df = pd.DataFrame()
+# ====================================
 
+# EXECUTIVE SUMMARY
 
-if geo_df.empty or selected_company not in geo_df.columns:
-    st.info("No geographic search exposure data available.")
+# ====================================
 
-else:
-    country_exposure = (
-        geo_df[[selected_company]]
-        .reset_index()
-        .rename(
-            columns={
-                "geoName": "Country",
-                selected_company: "Search Interest"
-            }
-        )
-    )
+if not ranking_df.empty:
 
-    country_exposure = (
-        country_exposure
-        .sort_values(
-            by="Search Interest",
-            ascending=False
-        )
-        .head(20)
-    )
+```
+highest = ranking_df.iloc[0]
 
-    st.dataframe(
-        country_exposure,
-        use_container_width=True
-    )
+st.subheader(
+    "Executive Summary"
+)
 
-    geo_fig = go.Figure()
+st.info(
+    f"""
+    Highest Search Risk Entity:
+    {highest['Company']}
 
-    geo_fig.add_trace(
-        go.Bar(
-            x=country_exposure["Country"],
-            y=country_exposure["Search Interest"],
-            text=country_exposure["Search Interest"],
-            textposition="auto"
-        )
-    )
+    Search Risk Index:
+    {highest['Search Risk Index']}
 
-    geo_fig.update_layout(
-        title=f"Top Countries Searching for {selected_company}",
-        template="plotly_dark",
-        height=600,
-        xaxis_title="Country",
-        yaxis_title="Search Interest"
-    )
+    These indicators feed directly into:
 
-    st.plotly_chart(
-        geo_fig,
-        use_container_width=True
-    )
+    • Reputation Intelligence Index (RII)
 
+    • Organizational Lifecycle Intelligence (OLI)
 
-st.subheader("Executive Search Intelligence Insights")
+    • Crisis Early Warning
 
-for _, row in ranking_df.iterrows():
-    company = row["Company"]
-    sri = row["Search Risk Index"]
-    volatility = row["Search Volatility"]
-    momentum = row["Search Momentum %"]
-
-    if sri >= 70:
-        st.error(
-            f"{company} shows very high search risk exposure, "
-            f"with strong public attention and unstable search behavior."
-        )
-
-    elif sri >= 40:
-        st.warning(
-            f"{company} shows moderate search risk exposure. "
-            f"Search attention is active and should be monitored."
-        )
-
-    else:
-        st.success(
-            f"{company} shows relatively low search risk exposure "
-            f"during the selected period."
-        )
-
-    st.info(
-        f"{company}: Search volatility = {volatility}, "
-        f"Search momentum = {momentum}%."
-    )
+    • Narrative Risk Monitoring
+    """
+)
+```
