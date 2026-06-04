@@ -2,7 +2,7 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 
-from utils.entity_selector import get_entity
+from utils.entity_selector import get_entity, get_entity_query
 
 st.set_page_config(
     page_title="Lifecycle Intelligence",
@@ -11,37 +11,84 @@ st.set_page_config(
 )
 
 entity = get_entity()
+
 entity_name = entity["Entity_Name"]
+display_name = entity["Short_Name"]
+entity_type = entity["Entity_Type"]
+priority = entity["Priority"]
+data_source_type = entity["Data_Source_Type"]
+
+news_query = get_entity_query(entity, "News_Query")
+trends_query = get_entity_query(entity, "Google_Trends_Query")
+youtube_query = get_entity_query(entity, "YouTube_Query")
+
+ticker = str(entity.get("Ticker", "")).strip()
+cik = str(entity.get("CIK", "")).strip()
+website = str(entity.get("Website", "")).strip()
 
 st.title("🔄 Organization Lifecycle Intelligence")
 
 st.markdown(f"""
 ### Organizational Lifecycle Assessment
 
-**Selected Entity:** {entity_name}
+**Selected Entity:** {display_name}
 
 The Organizational Lifecycle Index (OLI) evaluates
-the current maturity and strategic position of an entity.
+the current maturity, data readiness, and strategic position of an entity.
 """)
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.metric("Type", entity["Entity_Type"])
+c1.metric("Type", entity_type)
 c2.metric("Country", entity["Country"])
 c3.metric("Sector", entity["Sector"])
-c4.metric("Priority", entity["Priority"])
+c4.metric("Priority", priority)
 
 st.divider()
 
-entity_scores = {
-    "Tesla_Inc": 80,
-    "Microsoft_Corporation": 92,
-    "Kazan_Federal_University": 68,
-    "United_Nations_Childrens_Fund": 85,
-    "World_Health_Organization": 88,
+
+def has_value(value):
+    return bool(value) and value.lower() != "nan"
+
+
+base_scores = {
+    "Company": 60,
+    "International_Organization": 75,
+    "University": 65,
+    "Government": 70,
 }
 
-oli = entity_scores.get(entity_name, 70)
+priority_bonus = {
+    "Critical": 12,
+    "High": 8,
+    "Medium": 5,
+    "Low": 2,
+}
+
+data_source_bonus = {
+    "Financial": 10,
+    "Institutional": 7,
+    "Government": 8,
+}
+
+oli_components = {
+    "Base Entity Maturity": base_scores.get(entity_type, 55),
+    "Priority Weight": priority_bonus.get(priority, 5),
+    "Data Source Strength": data_source_bonus.get(data_source_type, 5),
+    "News Query Readiness": 5 if has_value(news_query) else 0,
+    "Trends Query Readiness": 5 if has_value(trends_query) else 0,
+    "YouTube Query Readiness": 3 if has_value(youtube_query) else 0,
+    "Official Website": 4 if has_value(website) else 0,
+    "Financial Identifier": 5 if has_value(ticker) or has_value(cik) else 0,
+}
+
+oli = min(
+    100,
+    round(
+        sum(oli_components.values()),
+        2,
+    ),
+)
 
 if oli <= 20:
     stage = "Startup"
@@ -56,10 +103,11 @@ elif oli <= 90:
 else:
     stage = "Global Influence"
 
-k1, k2 = st.columns(2)
+k1, k2, k3 = st.columns(3)
 
 k1.metric("OLI Score", oli)
 k2.metric("Lifecycle Stage", stage)
+k3.metric("Data Readiness Fields", sum(1 for value in [news_query, trends_query, youtube_query, website, ticker, cik] if has_value(value)))
 
 gauge = go.Figure(
     go.Indicator(
@@ -75,6 +123,37 @@ gauge = go.Figure(
 )
 
 st.plotly_chart(gauge, use_container_width=True)
+
+st.subheader("OLI Component Breakdown")
+
+component_df = pd.DataFrame({
+    "Component": list(oli_components.keys()),
+    "Score": list(oli_components.values()),
+})
+
+st.dataframe(
+    component_df,
+    use_container_width=True,
+    hide_index=True,
+)
+
+component_fig = go.Figure()
+
+component_fig.add_trace(
+    go.Bar(
+        x=component_df["Component"],
+        y=component_df["Score"],
+        text=component_df["Score"],
+        textposition="auto",
+    )
+)
+
+component_fig.update_layout(
+    height=500,
+    yaxis_title="Contribution",
+)
+
+st.plotly_chart(component_fig, use_container_width=True)
 
 st.subheader("Lifecycle Roadmap")
 
@@ -97,6 +176,22 @@ roadmap_fig.add_trace(
         x=roadmap["Position"],
         y=roadmap["Stage"],
         mode="lines+markers",
+        name="Lifecycle Framework",
+    )
+)
+
+roadmap_fig.add_trace(
+    go.Scatter(
+        x=[oli],
+        y=[stage],
+        mode="markers+text",
+        text=[display_name],
+        textposition="top center",
+        marker={
+            "size": 16,
+            "color": "red",
+        },
+        name="Selected Entity",
     )
 )
 
@@ -108,16 +203,49 @@ roadmap_fig.update_layout(
 
 st.plotly_chart(roadmap_fig, use_container_width=True)
 
+st.subheader("Real Data Readiness")
+
+readiness_df = pd.DataFrame({
+    "Field": [
+        "News Query",
+        "Google Trends Query",
+        "YouTube Query",
+        "Website",
+        "Ticker",
+        "CIK",
+    ],
+    "Value": [
+        news_query,
+        trends_query,
+        youtube_query,
+        website,
+        ticker,
+        cik,
+    ],
+})
+
+readiness_df["Ready"] = readiness_df["Value"].apply(has_value)
+
+st.dataframe(
+    readiness_df,
+    use_container_width=True,
+    hide_index=True,
+)
+
 st.subheader("Executive Insight")
 
 st.info(f"""
-Entity: {entity_name}
+Entity: {display_name}
+
+Internal Entity Name: {entity_name}
 
 OLI Score: {oli}
 
 Lifecycle Stage: {stage}
 
-Future versions will integrate:
+This OLI version is based on registry quality and real-data readiness.
+
+Future versions can integrate live values from:
 
 - RII
 - Google Trends Intelligence
