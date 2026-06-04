@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
 
 st.set_page_config(
@@ -26,6 +25,130 @@ df = pd.read_csv(
     encoding="utf-8-sig",
 )
 
+required_columns = [
+    "Entity_Name",
+    "Short_Name",
+    "Entity_Type",
+    "Ticker",
+    "Country",
+    "Sector",
+    "Industry",
+    "Data_Source_Type",
+    "Priority",
+    "News_Query",
+    "Google_Trends_Query",
+    "YouTube_Query",
+    "Website",
+    "CIK",
+]
+
+missing_columns = [
+    column
+    for column in required_columns
+    if column not in df.columns
+]
+
+if missing_columns:
+    st.error(
+        "Registry file is missing required columns: "
+        + ", ".join(missing_columns)
+    )
+    st.stop()
+
+
+def has_value(value):
+    text = str(value).strip()
+    return bool(text) and text.lower() != "nan"
+
+
+def score_entity(row):
+    priority_score = {
+        "Critical": 85,
+        "High": 70,
+        "Medium": 50,
+        "Low": 30,
+    }.get(row["Priority"], 45)
+
+    type_score = {
+        "Company": 65,
+        "International_Organization": 75,
+        "University": 60,
+        "Government": 70,
+    }.get(row["Entity_Type"], 55)
+
+    source_score = {
+        "Financial": 75,
+        "Institutional": 65,
+        "Government": 70,
+    }.get(row["Data_Source_Type"], 55)
+
+    data_fields = [
+        row["News_Query"],
+        row["Google_Trends_Query"],
+        row["YouTube_Query"],
+        row["Website"],
+        row["Ticker"],
+        row["CIK"],
+    ]
+
+    readiness = sum(
+        1
+        for value in data_fields
+        if has_value(value)
+    )
+
+    readiness_score = round(
+        readiness / len(data_fields) * 100,
+        2,
+    )
+
+    rii = round(
+        (
+            priority_score * 0.35
+            + source_score * 0.25
+            + readiness_score * 0.25
+            + type_score * 0.15
+        ),
+        2,
+    )
+
+    oli = round(
+        (
+            type_score * 0.45
+            + source_score * 0.25
+            + readiness_score * 0.20
+            + priority_score * 0.10
+        ),
+        2,
+    )
+
+    search = 75 if has_value(row["Google_Trends_Query"]) else 35
+    social = 70 if has_value(row["YouTube_Query"]) else 35
+
+    crisis = round(
+        (
+            priority_score * 0.40
+            + rii * 0.25
+            + search * 0.20
+            + social * 0.15
+        ),
+        2,
+    )
+
+    return {
+        "Entity": row["Entity_Name"],
+        "Short Name": row["Short_Name"],
+        "Type": row["Entity_Type"],
+        "Country": row["Country"],
+        "RII": rii,
+        "OLI": oli,
+        "Search": search,
+        "Social": social,
+        "Crisis": crisis,
+        "Data Readiness": readiness_score,
+    }
+
+
 sector = st.selectbox(
     "Select Sector",
     sorted(
@@ -42,17 +165,10 @@ if sector_df.empty:
     st.warning("No entities found for this sector.")
     st.stop()
 
-benchmark = []
-
-for _, row in sector_df.iterrows():
-    benchmark.append({
-        "Entity": row["Entity_Name"],
-        "RII": np.random.randint(30, 95),
-        "OLI": np.random.randint(30, 95),
-        "Search": np.random.randint(30, 95),
-        "Social": np.random.randint(30, 95),
-        "Crisis": np.random.randint(10, 90),
-    })
+benchmark = [
+    score_entity(row)
+    for _, row in sector_df.iterrows()
+]
 
 benchmark_df = pd.DataFrame(benchmark)
 
@@ -67,17 +183,24 @@ k4.metric("Avg Crisis", round(benchmark_df["Crisis"].mean(), 1))
 
 st.subheader("Sector Benchmark")
 
-st.dataframe(benchmark_df, use_container_width=True)
+st.dataframe(
+    benchmark_df,
+    use_container_width=True,
+    hide_index=True,
+)
 
 st.subheader("Sector Ranking")
 
 ranking = benchmark_df.copy()
 
-ranking["Composite Score"] = (
-    ranking["RII"] * 0.30
-    + ranking["OLI"] * 0.30
-    + ranking["Search"] * 0.20
-    + ranking["Social"] * 0.20
+ranking["Composite Score"] = round(
+    (
+        ranking["RII"] * 0.30
+        + ranking["OLI"] * 0.30
+        + ranking["Search"] * 0.20
+        + ranking["Social"] * 0.20
+    ),
+    2,
 )
 
 ranking = ranking.sort_values(
@@ -89,10 +212,13 @@ st.dataframe(
     ranking[
         [
             "Entity",
+            "Short Name",
             "Composite Score",
+            "Data Readiness",
         ]
     ],
     use_container_width=True,
+    hide_index=True,
 )
 
 st.subheader("Entity Comparison")
@@ -105,9 +231,9 @@ entities = st.multiselect(
 
 radar = go.Figure()
 
-for entity in entities:
+for selected_entity in entities:
     row = benchmark_df[
-        benchmark_df["Entity"] == entity
+        benchmark_df["Entity"] == selected_entity
     ].iloc[0]
 
     radar.add_trace(
@@ -127,7 +253,7 @@ for entity in entities:
                 "Crisis",
             ],
             fill="toself",
-            name=entity,
+            name=row["Short Name"],
         )
     )
 
@@ -152,14 +278,17 @@ matrix.add_trace(
         x=benchmark_df["Search"],
         y=benchmark_df["RII"],
         mode="markers+text",
-        text=benchmark_df["Entity"],
+        text=benchmark_df["Short Name"],
         textposition="top center",
+        marker={
+            "size": benchmark_df["Data Readiness"] / 4 + 8,
+        },
     )
 )
 
 matrix.update_layout(
-    xaxis_title="Visibility",
-    yaxis_title="Reputation",
+    xaxis_title="Search Visibility Readiness",
+    yaxis_title="Reputation Intelligence Score",
     height=600,
 )
 
@@ -174,16 +303,23 @@ highest_risk = benchmark_df.sort_values(
     ascending=False,
 ).iloc[0]
 
-st.success(f"Sector Leader: {leader['Entity']}")
-st.warning(f"Highest Crisis Exposure: {highest_risk['Entity']}")
+highest_readiness = benchmark_df.sort_values(
+    by="Data Readiness",
+    ascending=False,
+).iloc[0]
+
+st.success(f"Sector Leader: {leader['Short Name']}")
+st.warning(f"Highest Crisis Exposure: {highest_risk['Short Name']}")
+st.info(f"Best Real-Data Readiness: {highest_readiness['Short Name']}")
 
 st.info("""
-Future versions will calculate:
+This version calculates sector intelligence from registry quality,
+priority, entity type, identifiers, and real-data readiness.
 
-- Real RII
-- Real OLI
-- Real Search Intelligence
-- Real Social Intelligence
+Next improvement:
 
-instead of simulated benchmark scores.
+- connect live RII outputs
+- connect live Google Trends outputs
+- connect live social intelligence outputs
+- store scores in a shared cache for all pages
 """)
