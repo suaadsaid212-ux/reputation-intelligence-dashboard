@@ -1,9 +1,12 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
-import random
+import feedparser
 
-from utils.entity_selector import get_entity
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from urllib.parse import quote_plus
+
+from utils.entity_selector import get_entity, get_entity_query
 
 st.set_page_config(
     page_title="Crisis Early Warning",
@@ -12,14 +15,24 @@ st.set_page_config(
 )
 
 entity = get_entity()
+
 entity_name = entity["Entity_Name"]
+display_name = entity["Short_Name"]
+news_query = get_entity_query(entity, "News_Query")
+trends_query = get_entity_query(entity, "Google_Trends_Query")
+youtube_query = get_entity_query(entity, "YouTube_Query")
+
+priority = entity["Priority"]
+entity_type = entity["Entity_Type"]
+ticker = str(entity.get("Ticker", "")).strip()
+cik = str(entity.get("CIK", "")).strip()
 
 st.title("🚨 Crisis Early Warning")
 
 st.markdown(f"""
 ### Crisis Monitoring & Early Detection
 
-**Selected Entity:** {entity_name}
+**Selected Entity:** {display_name}
 
 This module identifies emerging reputation threats,
 narrative escalation, search spikes, and social pressure.
@@ -27,29 +40,112 @@ narrative escalation, search spikes, and social pressure.
 
 c1, c2, c3, c4 = st.columns(4)
 
-c1.metric("Type", entity["Entity_Type"])
+c1.metric("Type", entity_type)
 c2.metric("Country", entity["Country"])
 c3.metric("Sector", entity["Sector"])
-c4.metric("Priority", entity["Priority"])
+c4.metric("Priority", priority)
+
+st.caption(f"News query: {news_query}")
 
 st.divider()
 
-random.seed(42)
 
-news_risk = random.randint(20, 90)
-social_risk = random.randint(20, 90)
-search_risk = random.randint(20, 90)
-rii_risk = random.randint(20, 90)
-oli_risk = random.randint(20, 90)
+def has_value(value):
+    text = str(value).strip()
+    return bool(text) and text.lower() != "nan"
+
+
+@st.cache_data(ttl=1800)
+def get_news_headlines(query):
+    encoded_query = quote_plus(query)
+
+    feed = feedparser.parse(
+        f"https://news.google.com/rss/search?q={encoded_query}&hl=en-US&gl=US&ceid=US:en"
+    )
+
+    return [
+        entry.title
+        for entry in feed.entries[:25]
+    ]
+
+
+analyzer = SentimentIntensityAnalyzer()
+
+headlines = get_news_headlines(news_query)
+
+sentiment_scores = [
+    analyzer.polarity_scores(headline)["compound"]
+    for headline in headlines
+]
+
+if sentiment_scores:
+    negative_ratio = len(
+        [score for score in sentiment_scores if score <= -0.3]
+    ) / len(sentiment_scores)
+
+    sentiment_volatility = pd.Series(sentiment_scores).std()
+
+    news_risk = round(
+        min(
+            100,
+            (
+                len(headlines) / 25 * 35
+                + negative_ratio * 45
+                + sentiment_volatility * 20
+            ),
+        ),
+        2,
+    )
+else:
+    negative_ratio = 0
+    sentiment_volatility = 0
+    news_risk = 20
+
+search_risk = 65 if has_value(trends_query) else 35
+social_risk = 60 if has_value(youtube_query) else 35
+
+priority_risk = {
+    "Critical": 75,
+    "High": 60,
+    "Medium": 45,
+    "Low": 30,
+}.get(priority, 45)
+
+financial_risk = 65 if has_value(ticker) or has_value(cik) else 40
+
+rii_risk = round(
+    min(
+        100,
+        (
+            news_risk * 0.50
+            + financial_risk * 0.25
+            + priority_risk * 0.25
+        ),
+    ),
+    2,
+)
+
+oli_risk = round(
+    max(
+        0,
+        100 - (
+            priority_risk * 0.40
+            + search_risk * 0.25
+            + social_risk * 0.20
+            + financial_risk * 0.15
+        ),
+    ),
+    2,
+)
 
 crisis_score = round(
     (
-        news_risk
-        + social_risk
-        + search_risk
-        + rii_risk
-        + oli_risk
-    ) / 5,
+        news_risk * 0.35
+        + social_risk * 0.20
+        + search_risk * 0.20
+        + rii_risk * 0.15
+        + oli_risk * 0.10
+    ),
     2,
 )
 
@@ -134,16 +230,16 @@ matrix_df = pd.DataFrame({
     "Threat": [
         "Negative News",
         "Search Spike",
-        "Social Backlash",
+        "Social Pressure",
         "Narrative Escalation",
-        "Reputation Decline",
+        "Financial / Institutional Exposure",
     ],
     "Probability": [
-        random.randint(30, 100),
-        random.randint(30, 100),
-        random.randint(30, 100),
-        random.randint(30, 100),
-        random.randint(30, 100),
+        round(news_risk, 2),
+        round(search_risk, 2),
+        round(social_risk, 2),
+        round((news_risk + social_risk) / 2, 2),
+        round(financial_risk, 2),
     ],
 })
 
@@ -152,6 +248,22 @@ st.dataframe(
     use_container_width=True,
     hide_index=True,
 )
+
+st.subheader("Latest Crisis-Relevant Headlines")
+
+if headlines:
+    headline_df = pd.DataFrame({
+        "Headline": headlines,
+        "Sentiment": sentiment_scores,
+    })
+
+    st.dataframe(
+        headline_df,
+        use_container_width=True,
+        hide_index=True,
+    )
+else:
+    st.info("No live news headlines found for this entity.")
 
 st.subheader("Recommended Actions")
 
@@ -182,24 +294,26 @@ Continue standard monitoring.
 """)
 
 st.info(f"""
-Entity: {entity_name}
+Entity: {display_name}
+
+Internal Entity Name: {entity_name}
 
 Crisis Score: {crisis_score}
 
 Alert Level: {level}
 
-Current model integrates:
+Current model uses:
 
-- News Intelligence
-- Social Intelligence
-- Search Intelligence
-- RII
-- OLI
+- Live Google News RSS headlines
+- Registry-based search readiness
+- Registry-based social readiness
+- Priority and financial identifier exposure
 
 Future versions will connect directly to:
 
-- Google Trends
-- Social Media APIs
-- News Monitoring
+- Google Trends metrics
+- YouTube and Reddit APIs
+- Shared RII score storage
+- Shared OLI score storage
 - Reputation Forecasting
 """)
