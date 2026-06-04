@@ -309,3 +309,125 @@ st.plotly_chart(fig, use_container_width=True)
 col1, col2 = st.columns(2)
 
 with col1:
+    st.subheader("Social Sentiment")
+
+    positive = round(ssi)
+    negative = round(npi)
+    neutral = max(
+        0,
+        100 - positive - negative,
+    )
+
+    donut = go.Figure(
+        data=[
+            go.Pie(
+                labels=[
+                    "Positive",
+                    "Neutral",
+                    "Negative",
+                ],
+                values=[
+                    positive,
+                    neutral,
+                    negative,
+                ],
+                hole=0.6,
+            )
+        ]
+    )
+
+    st.plotly_chart(donut, use_container_width=True)
+
+with col2:
+    st.subheader("Social Risk Score")
+
+    gauge = go.Figure(
+        go.Indicator(
+            mode="gauge+number",
+            value=srs,
+            title={"text": "SRS"},
+            gauge={
+                "axis": {
+                    "range": [0, 100],
+                },
+            },
+        )
+    )
+
+    st.plotly_chart(gauge, use_container_width=True)
+
+if using_real_youtube:
+    st.subheader("YouTube Videos")
+
+    st.dataframe(
+        youtube_df[
+            [
+                "Title",
+                "Channel",
+                "Views",
+                "Likes",
+                "Comments",
+                "Sentiment",
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+st.subheader("Trending Narratives")
+
+narratives = pd.DataFrame({
+    "Topic": [
+        "Innovation",
+        "Leadership",
+        "AI",
+        "Sustainability",
+        "Growth",
+    ],
+    "Frequency": [
+        89,
+        76,
+        64,
+        52,
+        40,
+    ],
+})
+
+st.dataframe(
+    narratives,
+    use_container_width=True,
+    hide_index=True,
+)
+
+st.subheader("Entity Information")
+
+st.write(f"**Type:** {entity['Entity_Type']}")
+st.write(f"**Country:** {entity['Country']}")
+st.write(f"**Sector:** {entity['Sector']}")
+
+st.subheader("Executive Insight")
+
+st.info(f"""
+{display_name} currently has a Social Risk Score of {srs}.
+
+Social Sentiment Index (SSI): {ssi}
+
+Social Visibility Index (SVI): {svi}
+
+Narrative Pressure Index (NPI): {npi}
+
+Current Classification: {risk}
+
+Data Mode:
+
+- YouTube: {"Real API data" if using_real_youtube else "Demo fallback"}
+- Reddit: Demo fallback
+
+These indicators feed directly into:
+
+- Reputation Intelligence Index (RII)
+- Narrative Reputation Risk Index (NRRI)
+- Organizational Lifecycle Index (OLI)
+- Crisis Early Warning System
+""")
+
