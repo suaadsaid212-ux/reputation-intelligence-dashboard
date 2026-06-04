@@ -1,17 +1,17 @@
 Entity_ID,Entity_Name,Short_Name,Entity_Type,Ticker,Country,Sector,Industry,Data_Source_Type,Priority
-TESLA,Tesla Inc,Tesla,Company,TSLA,USA,Automotive,Electric Vehicles,Financial,High
-MSFT,Microsoft Corporation,Microsoft,Company,MSFT,USA,Technology,Software,Financial,High
-NESTLE,Nestlé S.A.,Nestlé,Company,NSRGY,Switzerland,Consumer Goods,Food & Beverage,Financial,High
-APPLE,Apple Inc,Apple,Company,AAPL,USA,Technology,Consumer Electronics,Financial,High
-GOOGLE,Alphabet Inc,Google,Company,GOOGL,USA,Technology,Internet Services,Financial,High
-UNICEF,United Nations Children's Fund,UNICEF,International Organization,,Global,Development,Humanitarian,Institutional,High
-WHO,World Health Organization,WHO,International Organization,,Global,Health,Public Health,Institutional,High
-UNDP,United Nations Development Programme,UNDP,International Organization,,Global,Development,Humanitarian,Institutional,High
-KFU,Kazan Federal University,KFU,University,,Russia,Education,Higher Education,Institutional,Critical
-CARDIFF,Cardiff University,Cardiff,University,,United Kingdom,Education,Higher Education,Institutional,High
-SQU,Sultan Qaboos University,SQU,University,,Oman,Education,Higher Education,Institutional,High
-UKGOV,UK Government,UK Gov,Government,,United Kingdom,Public Sector,Government,Government,High
-OMANGOV,Oman Government,Oman Gov,Government,,Oman,Public Sector,Government,Government,High
-OQ,OQ Group,OQ,Company,,Oman,Energy,Oil & Gas,Institutional,High
+TESLA,Tesla_Inc,Tesla,Company,TSLA,USA,Automotive,Electric_Vehicles,Financial,High
+MSFT,Microsoft_Corporation,Microsoft,Company,MSFT,USA,Technology,Software,Financial,High
+NESTLE,Nestle_SA,Nestle,Company,NSRGY,Switzerland,Consumer_Goods,Food_and_Beverage,Financial,High
+APPLE,Apple_Inc,Apple,Company,AAPL,USA,Technology,Consumer_Electronics,Financial,High
+GOOGLE,Alphabet_Inc,Google,Company,GOOGL,USA,Technology,Internet_Services,Financial,High
+UNICEF,United_Nations_Childrens_Fund,UNICEF,International_Organization,,Global,Development,Humanitarian,Institutional,High
+WHO,World_Health_Organization,WHO,International_Organization,,Global,Health,Public_Health,Institutional,High
+UNDP,United_Nations_Development_Programme,UNDP,International_Organization,,Global,Development,Humanitarian,Institutional,High
+KFU,Kazan_Federal_University,KFU,University,,Russia,Education,Higher_Education,Institutional,Critical
+CARDIFF,Cardiff_University,Cardiff,University,,United_Kingdom,Education,Higher_Education,Institutional,High
+SQU,Sultan_Qaboos_University,SQU,University,,Oman,Education,Higher_Education,Institutional,High
+UKGOV,UK_Government,UK_Gov,Government,,United_Kingdom,Public_Sector,Government,Government,High
+OMANGOV,Oman_Government,Oman_Gov,Government,,Oman,Public_Sector,Government,Government,High
+OQ,OQ_Group,OQ,Company,,Oman,Energy,Oil_and_Gas,Institutional,High
 OMANTEL,Omantel,Omantel,Company,,Oman,Telecommunications,Telecom,Institutional,High
-BANKMUSCAT,Bank Muscat,Bank Muscat,Company,,Oman,Financial Services,Banking,Institutional,High
+BANKMUSCAT,Bank_Muscat,Bank_Muscat,Company,,Oman,Financial_Services,Banking,Institutional,High
