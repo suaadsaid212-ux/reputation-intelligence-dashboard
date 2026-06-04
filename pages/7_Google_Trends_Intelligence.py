@@ -3,7 +3,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-from utils.entity_selector import get_entity
+from utils.entity_selector import get_entity, get_entity_query
 
 st.set_page_config(
     page_title="Google Trends Intelligence",
@@ -12,14 +12,18 @@ st.set_page_config(
 )
 
 entity = get_entity()
-primary_entity = entity["Entity_Name"]
+
+display_name = entity["Short_Name"]
+primary_entity = get_entity_query(entity, "Google_Trends_Query")
 
 st.title("📈 Google Trends Intelligence")
 
 st.markdown(f"""
 ### Search Intelligence Monitoring
 
-**Selected Entity:** {primary_entity}
+**Selected Entity:** {display_name}
+
+**Google Trends Query:** {primary_entity}
 
 This module evaluates:
 
@@ -124,6 +128,10 @@ try:
 
 except Exception as e:
     st.error("Google Trends data could not be loaded.")
+    st.info(
+        "Google Trends can temporarily block automated requests. "
+        "Try one term only, wait a few minutes, or use another period."
+    )
     st.code(str(e))
     st.stop()
 
