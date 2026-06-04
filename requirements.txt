@@ -1,4 +1,3 @@
-
 streamlit
 pandas
 numpy
@@ -11,3 +10,5 @@ matplotlib
 vaderSentiment
 textblob
 pytrends
+requests
+scikit-learn
