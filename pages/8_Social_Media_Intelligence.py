@@ -3,40 +3,58 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 
+from utils.entity_selector import get_entity
+
 st.set_page_config(
-    page_title="Social Media Intelligence",
-    layout="wide"
+page_title="Social Media Intelligence",
+page_icon="📱",
+layout="wide"
 )
+
+# ====================================
+
+# ENTITY SELECTION
+
+# ====================================
+
+entity = get_entity()
+
+organization = entity["Entity_Name"]
+
+# ====================================
+
+# PAGE HEADER
+
+# ====================================
 
 st.title("📱 Social Media Intelligence")
 
-st.markdown("""
-Monitor social reputation signals across digital platforms.
+st.markdown(f"""
 
-Current Version:
-- YouTube
-- Reddit
+### Monitoring Social Reputation Signals
 
-Future Versions:
-- X (Twitter)
-- LinkedIn
-- TikTok
-- Facebook
-""")
+**Selected Entity:** {organization}
 
-# ====================================
-# ORGANIZATION INPUT
-# ====================================
+Sources:
 
-organization = st.sidebar.text_input(
-    "Organization",
-    "Tesla"
-)
+* YouTube
+* Reddit
+
+Future Sources:
+
+* X (Twitter)
+* LinkedIn
+* TikTok
+* Facebook
+  """)
 
 # ====================================
+
 # DEMO DATA
-# Replace later with APIs
+
 # ====================================
+
+np.random.seed(42)
 
 youtube_mentions = np.random.randint(500, 3000)
 reddit_mentions = np.random.randint(100, 1500)
@@ -48,78 +66,84 @@ youtube_engagement = np.random.randint(10000, 100000)
 reddit_engagement = np.random.randint(1000, 20000)
 
 # ====================================
-# CALCULATED SCORES
+
+# SCORES
+
 # ====================================
 
 ssi = round(
-    (
-        (youtube_sentiment + 1) * 50 +
-        (reddit_sentiment + 1) * 50
-    ) / 2,
-    2
+(
+(youtube_sentiment + 1) * 50 +
+(reddit_sentiment + 1) * 50
+) / 2,
+2
 )
 
 svi = round(
-    min(
-        100,
-        (
-            youtube_mentions +
-            reddit_mentions
-        ) / 40
-    ),
-    2
+min(
+100,
+(
+youtube_mentions +
+reddit_mentions
+) / 40
+),
+2
 )
 
 ses = round(
-    min(
-        100,
-        (
-            youtube_engagement +
-            reddit_engagement
-        ) / 1000
-    ),
-    2
+min(
+100,
+(
+youtube_engagement +
+reddit_engagement
+) / 1000
+),
+2
 )
 
 npi = round(
-    max(
-        0,
-        100 - ssi
-    ),
-    2
+max(
+0,
+100 - ssi
+),
+2
 )
 
 srs = round(
-    (
-        0.30 * ssi +
-        0.25 * npi +
-        0.25 * svi +
-        0.20 * ses
-    ),
-    2
+(
+0.30 * ssi +
+0.25 * npi +
+0.25 * svi +
+0.20 * ses
+),
+2
 )
 
 # ====================================
+
 # RISK CLASSIFICATION
+
 # ====================================
 
 if srs <= 20:
-    risk = "Stable"
+risk = "🟢 Stable"
 
 elif srs <= 40:
-    risk = "Monitor"
+risk = "🟡 Monitor"
 
 elif srs <= 60:
-    risk = "Elevated"
+risk = "🟠 Elevated"
 
 elif srs <= 80:
-    risk = "High Risk"
+risk = "🔴 High Risk"
 
 else:
-    risk = "Critical"
+risk = "🚨 Critical"
 
 # ====================================
-# EXECUTIVE KPIs
+
+# KPI SECTION
+
 # ====================================
 
 st.subheader("Executive Overview")
@@ -134,68 +158,71 @@ c4.metric("SRS", srs)
 st.success(f"Current Social Risk Status: {risk}")
 
 # ====================================
+
 # PLATFORM COMPARISON
+
 # ====================================
 
 st.subheader("Platform Comparison")
 
 platform_df = pd.DataFrame({
-    "Platform": ["YouTube", "Reddit"],
-    "Mentions": [
-        youtube_mentions,
-        reddit_mentions
-    ],
-    "Engagement": [
-        youtube_engagement,
-        reddit_engagement
-    ]
+"Platform": [
+"YouTube",
+"Reddit"
+],
+"Mentions": [
+youtube_mentions,
+reddit_mentions
+],
+"Engagement": [
+youtube_engagement,
+reddit_engagement
+]
 })
 
 fig = go.Figure()
 
 fig.add_trace(
-    go.Bar(
-        x=platform_df["Platform"],
-        y=platform_df["Mentions"],
-        name="Mentions"
-    )
+go.Bar(
+x=platform_df["Platform"],
+y=platform_df["Mentions"],
+name="Mentions"
+)
 )
 
 fig.add_trace(
-    go.Bar(
-        x=platform_df["Platform"],
-        y=platform_df["Engagement"],
-        name="Engagement"
-    )
+go.Bar(
+x=platform_df["Platform"],
+y=platform_df["Engagement"],
+name="Engagement"
+)
 )
 
 fig.update_layout(
-    template="plotly_dark",
-    barmode="group",
-    height=500
+barmode="group",
+height=500
 )
 
 st.plotly_chart(
-    fig,
-    use_container_width=True
+fig,
+use_container_width=True
 )
 
 # ====================================
-# SENTIMENT DONUT
+
+# SENTIMENT ANALYSIS
+
 # ====================================
 
+col1, col2 = st.columns(2)
+
+with col1:
+
+```
 st.subheader("Social Sentiment")
 
-positive = max(
-    0,
-    round(ssi)
-)
-
-negative = max(
-    0,
-    round(npi)
-)
-
+positive = round(ssi)
+negative = round(npi)
 neutral = max(
     0,
     100 - positive - negative
@@ -219,20 +246,15 @@ donut = go.Figure(
     ]
 )
 
-donut.update_layout(
-    template="plotly_dark",
-    height=500
-)
-
 st.plotly_chart(
     donut,
     use_container_width=True
 )
+```
 
-# ====================================
-# SOCIAL RISK GAUGE
-# ====================================
+with col2:
 
+```
 st.subheader("Social Risk Score")
 
 gauge = go.Figure(
@@ -248,66 +270,93 @@ gauge = go.Figure(
     )
 )
 
-gauge.update_layout(
-    template="plotly_dark",
-    height=400
-)
-
 st.plotly_chart(
     gauge,
     use_container_width=True
 )
+```
 
 # ====================================
+
 # NARRATIVE INTELLIGENCE
+
 # ====================================
 
 st.subheader("Trending Narratives")
 
 narratives = pd.DataFrame({
-    "Topic": [
-        "Innovation",
-        "Leadership",
-        "AI",
-        "Sustainability",
-        "Market Growth"
-    ],
-    "Frequency": [
-        89,
-        76,
-        64,
-        52,
-        40
-    ]
+"Topic": [
+"Innovation",
+"Leadership",
+"AI",
+"Sustainability",
+"Growth"
+],
+"Frequency": [
+89,
+76,
+64,
+52,
+40
+]
 })
 
 st.dataframe(
-    narratives,
-    use_container_width=True
+narratives,
+use_container_width=True
 )
 
 # ====================================
+
+# ENTITY PROFILE
+
+# ====================================
+
+st.subheader("Entity Information")
+
+st.write(
+f"**Type:** {entity['Entity_Type']}"
+)
+
+st.write(
+f"**Country:** {entity['Country']}"
+)
+
+st.write(
+f"**Sector:** {entity['Sector']}"
+)
+
+# ====================================
+
 # EXECUTIVE INSIGHT
+
 # ====================================
 
 st.subheader("Executive Insight")
 
 st.info(
-    f"""
-    {organization} currently shows a Social Risk Score of {srs}.
+f"""
+{organization} currently has a Social Risk Score of {srs}.
 
-    Visibility Score: {svi}
+```
+Social Sentiment Index (SSI): {ssi}
 
-    Sentiment Score: {ssi}
+Social Visibility Index (SVI): {svi}
 
-    Narrative Pressure: {npi}
+Narrative Pressure Index (NPI): {npi}
 
-    Current Classification: {risk}
+Current Classification: {risk}
 
-    These metrics will feed directly into:
-    - RII
-    - NRRI
-    - Crisis Early Warning
-    - Lifecycle Intelligence
-    """
+These indicators feed directly into:
+
+• Reputation Intelligence Index (RII)
+
+• Narrative Reputation Risk Index (NRRI)
+
+• Organizational Lifecycle Index (OLI)
+
+• Crisis Early Warning System
+"""
+```
+
 )
