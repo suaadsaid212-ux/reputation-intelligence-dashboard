@@ -1,3 +1,20 @@
+Entity_ID,Entity_Name,Short_Name,Entity_Type,Ticker,Country,Sector,Industry,Data_Source_Type,Priority,News_Query,Google_Trends_Query,Search_Query,YouTube_Query,Website,CIK
+TESLA,Tesla_Inc,Tesla,Company,TSLA,USA,Automotive,Electric_Vehicles,Financial,High,Tesla,Tesla,Tesla,Tesla,https://www.tesla.com,0001318605
+MSFT,Microsoft_Corporation,Microsoft,Company,MSFT,USA,Technology,Software,Financial,High,Microsoft,Microsoft,Microsoft,Microsoft,https://www.microsoft.com,0000789019
+NESTLE,Nestle_SA,Nestle,Company,NSRGY,Switzerland,Consumer_Goods,Food_and_Beverage,Financial,High,Nestle,Nestle,Nestle,Nestle,https://www.nestle.com,
+APPLE,Apple_Inc,Apple,Company,AAPL,USA,Technology,Consumer_Electronics,Financial,High,Apple,Apple,Apple,Apple,https://www.apple.com,0000320193
+GOOGLE,Alphabet_Inc,Google,Company,GOOGL,USA,Technology,Internet_Services,Financial,High,Alphabet Google,Google,Google,Google,https://abc.xyz,0001652044
+UNICEF,United_Nations_Childrens_Fund,UNICEF,International_Organization,,Global,Development,Humanitarian,Institutional,High,UNICEF,UNICEF,UNICEF,UNICEF,https://www.unicef.org,
+WHO,World_Health_Organization,WHO,International_Organization,,Global,Health,Public_Health,Institutional,High,World Health Organization,World Health Organization,WHO,World Health Organization,https://www.who.int,
+UNDP,United_Nations_Development_Programme,UNDP,International_Organization,,Global,Development,Humanitarian,Institutional,High,UNDP,UNDP,UNDP,UNDP,https://www.undp.org,
+KFU,Kazan_Federal_University,KFU,University,,Russia,Education,Higher_Education,Institutional,Critical,Kazan Federal University,Kazan Federal University,Kazan Federal University,Kazan Federal University,https://kpfu.ru,
+CARDIFF,Cardiff_University,Cardiff,University,,United_Kingdom,Education,Higher_Education,Institutional,High,Cardiff University,Cardiff University,Cardiff University,Cardiff University,https://www.cardiff.ac.uk,
+SQU,Sultan_Qaboos_University,SQU,University,,Oman,Education,Higher_Education,Institutional,High,Sultan Qaboos University,Sultan Qaboos University,Sultan Qaboos University,Sultan Qaboos University,https://www.squ.edu.om,
+UKGOV,UK_Government,UK_Gov,Government,,United_Kingdom,Public_Sector,Government,Government,High,UK Government,UK Government,UK Government,UK Government,https://www.gov.uk,
+OMANGOV,Oman_Government,Oman_Gov,Government,,Oman,Public_Sector,Government,Government,High,Oman Government,Oman Government,Oman Government,Oman Government,https://www.oman.om,
+OQ,OQ_Group,OQ,Company,,Oman,Energy,Oil_and_Gas,Institutional,High,OQ Group,OQ Group,OQ Oman,OQ Group,https://oq.com,
+OMANTEL,Omantel,Omantel,Company,,Oman,Telecommunications,Telecom,Institutional,High,Omantel,Omantel,Omantel,Omantel,https://www.omantel.om,
+BANKMUSCAT,Bank_Muscat,Bank_Muscat,Company,,Oman,Financial_Services,Banking,Institutional,High,Bank Muscat,Bank Muscat,Bank Muscat,Bank Muscat,https://www.bankmuscat.com,
 AMZN,Amazon_Inc,Amazon,Company,AMZN,USA,Technology,Ecommerce_and_Cloud,Financial,High,Amazon,Amazon,Amazon,Amazon,https://www.amazon.com,0001018724
 META,Meta_Platforms,Meta,Company,META,USA,Technology,Social_Media,Financial,High,Meta Platforms,Meta,Meta Facebook,Meta,https://about.meta.com,0001326801
 NVDA,Nvidia_Corporation,Nvidia,Company,NVDA,USA,Technology,Semiconductors,Financial,High,Nvidia,Nvidia,Nvidia,Nvidia,https://www.nvidia.com,0001045810
