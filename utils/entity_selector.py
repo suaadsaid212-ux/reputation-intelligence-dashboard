@@ -22,15 +22,18 @@ def get_entity():
         "Entity_Name",
         "Short_Name",
         "Entity_Type",
+        "Ticker",
         "Country",
         "Sector",
         "Industry",
+        "Data_Source_Type",
         "Priority",
         "News_Query",
         "Google_Trends_Query",
         "Search_Query",
         "YouTube_Query",
         "Website",
+        "CIK",
     ]
 
     missing_columns = [
@@ -66,10 +69,10 @@ def get_entity():
 def get_entity_query(entity, query_column, fallback_column="Short_Name"):
     value = entity.get(query_column, "")
 
-    if pd.isna(value) or str(value).strip() == "":
+    if pd.isna(value) or str(value).strip() == "" or str(value).strip().lower() == "nan":
         value = entity.get(fallback_column, "")
 
-    if pd.isna(value) or str(value).strip() == "":
+    if pd.isna(value) or str(value).strip() == "" or str(value).strip().lower() == "nan":
         value = entity.get("Entity_Name", "")
 
     return str(value).strip()
