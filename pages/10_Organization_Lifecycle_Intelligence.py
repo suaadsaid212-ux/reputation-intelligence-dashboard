@@ -1,149 +1,400 @@
 import streamlit as st
-import pandas as pd
 import plotly.graph_objects as go
+import pandas as pd
+
+from utils.entity_selector import get_entity
 
 st.set_page_config(
-    page_title="Lifecycle Intelligence",
-    page_icon="🔄",
-    layout="wide"
+page_title="Lifecycle Intelligence",
+page_icon="🔄",
+layout="wide"
 )
+
+# ====================================
+
+# ENTITY SELECTION
+
+# ====================================
+
+entity = get_entity()
+
+entity_name = entity["Entity_Name"]
 
 st.title("🔄 Organization Lifecycle Intelligence")
 
-st.markdown("""
-The Organizational Lifecycle Index (OLI) estimates
-the current lifecycle stage of an entity.
+st.markdown(f"""
+
+### Organizational Lifecycle Assessment
+
+**Selected Entity:** {entity_name}
+
+The Organizational Lifecycle Index (OLI) evaluates
+the current maturity and strategic position of an entity.
 """)
 
 # ====================================
-# LOAD REGISTRY
+
+# ENTITY PROFILE
+
 # ====================================
 
-df = pd.read_csv(
-    "config/entity_registry.csv",
-    encoding="utf-8-sig"
+c1, c2, c3, c4 = st.columns(4)
+
+c1.metric(
+"Type",
+entity["Entity_Type"]
 )
 
-# ====================================
-# ENTITY SELECTION
-# ====================================
-
-entity = st.selectbox(
-    "Select Entity",
-    df["Entity_Name"]
+c2.metric(
+"Country",
+entity["Country"]
 )
 
+c3.metric(
+"Sector",
+entity["Sector"]
+)
+
+c4.metric(
+"Priority",
+entity["Priority"]
+)
+
+st.divider()
+
 # ====================================
-# DEMO OLI SCORE
+
+# DEMO OLI ENGINE
+
 # ====================================
 
 entity_scores = {
-    "Tesla_Inc": 80,
-    "Microsoft_Corporation": 90,
-    "Kazan_Federal_University": 65,
-    "United_Nations_Childrens_Fund": 85,
-    "World_Health_Organization": 88
+
+```
+"Tesla_Inc": 80,
+
+"Microsoft_Corporation": 92,
+
+"Kazan_Federal_University": 68,
+
+"United_Nations_Childrens_Fund": 85,
+
+"World_Health_Organization": 88
+```
+
 }
 
-oli = entity_scores.get(entity, 70)
+oli = entity_scores.get(
+entity_name,
+70
+)
 
 # ====================================
+
 # CLASSIFICATION
+
 # ====================================
 
 if oli <= 20:
-    stage = "Startup"
+
+```
+stage = "Startup"
+```
 
 elif oli <= 40:
-    stage = "Growth"
+
+```
+stage = "Growth"
+```
 
 elif oli <= 60:
-    stage = "Maturity"
+
+```
+stage = "Maturity"
+```
 
 elif oli <= 75:
-    stage = "Recovery"
+
+```
+stage = "Recovery"
+```
 
 elif oli <= 90:
-    stage = "Leadership"
+
+```
+stage = "Leadership"
+```
 
 else:
-    stage = "Global Influence"
+
+```
+stage = "Global Influence"
+```
 
 # ====================================
-# KPI
+
+# KPI SECTION
+
 # ====================================
 
-col1, col2 = st.columns(2)
+k1, k2 = st.columns(2)
 
-col1.metric(
-    "OLI Score",
-    oli
+k1.metric(
+"OLI Score",
+oli
 )
 
-col2.metric(
-    "Lifecycle Stage",
-    stage
+k2.metric(
+"Lifecycle Stage",
+stage
 )
 
 # ====================================
-# GAUGE
+
+# OLI GAUGE
+
 # ====================================
 
-fig = go.Figure(
-    go.Indicator(
-        mode="gauge+number",
-        value=oli,
-        title={"text": "Organizational Lifecycle Index"},
-        gauge={
-            "axis": {"range": [0, 100]}
-        }
-    )
+gauge = go.Figure(
+go.Indicator(
+mode="gauge+number",
+value=oli,
+title={
+"text":
+"Organizational Lifecycle Index"
+},
+gauge={
+"axis": {
+"range": [0, 100]
+}
+}
+)
 )
 
 st.plotly_chart(
-    fig,
-    use_container_width=True
+gauge,
+use_container_width=True
 )
 
 # ====================================
-# STAGES
+
+# LIFECYCLE ROADMAP
+
 # ====================================
 
-st.subheader("Lifecycle Framework")
+st.subheader(
+"Lifecycle Roadmap"
+)
+
+roadmap = pd.DataFrame({
+
+```
+"Stage": [
+
+    "Startup",
+
+    "Growth",
+
+    "Maturity",
+
+    "Recovery",
+
+    "Leadership",
+
+    "Global Influence"
+
+],
+
+"Position": [
+    10,
+    30,
+    50,
+    70,
+    85,
+    100
+]
+```
+
+})
+
+roadmap_fig = go.Figure()
+
+roadmap_fig.add_trace(
+go.Scatter(
+x=roadmap["Position"],
+y=roadmap["Stage"],
+mode="lines+markers"
+)
+)
+
+roadmap_fig.update_layout(
+height=500,
+xaxis_title="Lifecycle Progress",
+yaxis_title="Stage"
+)
+
+st.plotly_chart(
+roadmap_fig,
+use_container_width=True
+)
+
+# ====================================
+
+# FRAMEWORK
+
+# ====================================
+
+st.subheader(
+"Lifecycle Framework"
+)
+
+framework = pd.DataFrame({
+
+```
+"Stage": [
+
+    "Startup",
+
+    "Growth",
+
+    "Maturity",
+
+    "Recovery",
+
+    "Leadership",
+
+    "Global Influence"
+
+],
+
+"Score Range": [
+
+    "0-20",
+
+    "21-40",
+
+    "41-60",
+
+    "61-75",
+
+    "76-90",
+
+    "91-100"
+
+],
+
+"Characteristics": [
+
+    "Early visibility",
+
+    "Rapid expansion",
+
+    "Stable operations",
+
+    "Repositioning phase",
+
+    "Sector leadership",
+
+    "Global influence"
+
+]
+```
+
+})
+
+st.dataframe(
+framework,
+use_container_width=True,
+hide_index=True
+)
+
+# ====================================
+
+# OLI DRIVERS
+
+# ====================================
+
+st.subheader(
+"Future OLI Drivers"
+)
+
+drivers = pd.DataFrame({
+
+```
+"Driver": [
+
+    "News Visibility",
+
+    "Search Visibility",
+
+    "Social Visibility",
+
+    "Narrative Strength",
+
+    "Reputation Resilience",
+
+    "Financial Stability"
+
+],
+
+"Weight": [
+
+    20,
+
+    15,
+
+    15,
+
+    20,
+
+    20,
+
+    10
+
+]
+```
+
+})
+
+st.dataframe(
+drivers,
+use_container_width=True,
+hide_index=True
+)
+
+# ====================================
+
+# EXECUTIVE INSIGHT
+
+# ====================================
+
+st.subheader(
+"Executive Insight"
+)
 
 st.info(
-    """
-    0–20     Startup
+f"""
+Entity: {entity_name}
 
-    21–40    Growth
+```
+OLI Score: {oli}
 
-    41–60    Maturity
+Lifecycle Stage: {stage}
 
-    61–75    Recovery
+Future versions will integrate:
 
-    76–90    Leadership
+• RII
 
-    91–100   Global Influence
-    """
-)
+• Google Trends Intelligence
 
-# ====================================
-# FUTURE VERSION
-# ====================================
+• Social Media Intelligence
 
-st.subheader("Future Data Inputs")
+• Crisis Early Warning
 
-st.markdown(
-    """
-    Future versions will calculate OLI using:
+• Narrative Intelligence
 
-    - News Visibility
-    - Search Visibility
-    - Social Visibility
-    - Financial Growth
-    - Narrative Strength
-    - Reputation Resilience
+to calculate a dynamic Organizational Lifecycle Index.
+"""
+```
 
-    instead of fixed demo scores.
-    """
 )
