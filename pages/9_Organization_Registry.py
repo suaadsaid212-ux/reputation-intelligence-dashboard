@@ -4,18 +4,20 @@ import pandas as pd
 st.set_page_config(
     page_title="Organization Registry",
     page_icon="🏢",
-    layout="wide"
+    layout="wide",
 )
 
 st.title("🏢 Organization Registry")
 
-# Load data
-df = pd.read_csv(
-    "config/entity_registry.csv",
-    encoding="utf-8-sig"
-)
+try:
+    df = pd.read_csv(
+        "config/entity_registry.csv",
+        encoding="utf-8-sig",
+    )
+except FileNotFoundError:
+    st.error("Registry file not found: config/entity_registry.csv")
+    st.stop()
 
-# KPIs
 col1, col2, col3, col4 = st.columns(4)
 
 col1.metric("Entities", len(df))
@@ -25,7 +27,6 @@ col4.metric("Sectors", df["Sector"].nunique())
 
 st.divider()
 
-# Search
 search = st.text_input("🔍 Search Entity")
 
 filtered = df.copy()
@@ -35,24 +36,21 @@ if search:
         filtered["Entity_Name"].str.contains(
             search,
             case=False,
-            na=False
+            na=False,
         )
     ]
 
-# Table
 st.subheader("Registry")
 
 st.dataframe(
     filtered,
-    use_container_width=True
+    use_container_width=True,
 )
 
-# Profile
 if len(filtered) > 0:
-
     selected = st.selectbox(
         "Select Entity",
-        filtered["Entity_Name"]
+        filtered["Entity_Name"],
     )
 
     profile = filtered[
@@ -67,3 +65,5 @@ if len(filtered) > 0:
     st.write("**Sector:**", profile["Sector"])
     st.write("**Industry:**", profile["Industry"])
     st.write("**Priority:**", profile["Priority"])
+else:
+    st.info("No matching entities found.")
