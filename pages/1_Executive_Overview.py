@@ -1,213 +1,325 @@
-
 import streamlit as st
 import pandas as pd
-import numpy as np
-import yfinance as yf
-import feedparser
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import plotly.graph_objects as go
 
 st.set_page_config(
-    page_title="Executive Overview",
-    layout="wide"
+    page_title="Sector Intelligence",
+    page_icon="🏭",
+    layout="wide",
 )
 
-st.title("Executive Overview")
+st.title("🏭 Sector Intelligence")
 
-language = st.sidebar.selectbox(
-    "Language / Язык",
-    ["EN", "RU"]
+st.markdown("""
+Compare organizations within the same sector and identify:
+
+- Sector Leaders
+- Highest Risk Entities
+- Fastest Growing Entities
+- Reputation Outliers
+- Competitive Positioning
+""")
+
+df = pd.read_csv(
+    "config/entity_registry.csv",
+    encoding="utf-8-sig",
 )
 
-if language == "RU":
-    input_title = "Введите тикеры компаний"
-    period_title = "Период анализа"
-    page_title = "Исполнительная панель"
-else:
-    input_title = "Enter company tickers"
-    period_title = "Analysis Period"
-    page_title = "Executive Overview"
-
-st.header(page_title)
-
-time_range = st.sidebar.selectbox(
-    period_title,
-    ["1 Month", "3 Months", "6 Months", "1 Year", "3 Years", "5 Years"]
-)
-
-if time_range == "1 Month":
-    start_date = "2026-04-01"
-elif time_range == "3 Months":
-    start_date = "2026-02-01"
-elif time_range == "6 Months":
-    start_date = "2025-11-01"
-elif time_range == "1 Year":
-    start_date = "2025-05-01"
-elif time_range == "3 Years":
-    start_date = "2023-01-01"
-else:
-    start_date = "2021-01-01"
-
-company_input = st.sidebar.text_input(
-    input_title,
-    "TSLA,MSFT,META"
-)
-
-companies = [
-    c.strip().upper()
-    for c in company_input.split(",")
-    if c.strip() != ""
+required_columns = [
+    "Entity_Name",
+    "Short_Name",
+    "Entity_Type",
+    "Ticker",
+    "Country",
+    "Sector",
+    "Industry",
+    "Data_Source_Type",
+    "Priority",
+    "News_Query",
+    "Google_Trends_Query",
+    "YouTube_Query",
+    "Website",
+    "CIK",
 ]
 
-analyzer = SentimentIntensityAnalyzer()
+missing_columns = [
+    column
+    for column in required_columns
+    if column not in df.columns
+]
 
-results = []
-keyword_results = []
-
-for company in companies:
-
-    stock = yf.download(
-        company,
-        start=start_date,
-        progress=False,
-        auto_adjust=True
+if missing_columns:
+    st.error(
+        "Registry file is missing required columns: "
+        + ", ".join(missing_columns)
     )
-
-    if stock.empty:
-        st.warning(f"No stock data found for {company}")
-        continue
-
-    stock["Returns"] = stock["Close"].pct_change()
-    stock["Volatility"] = stock["Returns"].rolling(21).std()
-
-    latest_volatility = stock["Volatility"].dropna()
-
-    if len(latest_volatility) == 0:
-        market_volatility = 0
-    else:
-        market_volatility = float(latest_volatility.iloc[-1])
-
-    rss_url = f"https://news.google.com/rss/search?q={company}"
-    feed = feedparser.parse(rss_url)
-
-    scores = []
-
-    for entry in feed.entries[:15]:
-        title = entry.title
-        score = analyzer.polarity_scores(title)["compound"]
-        scores.append(score)
-
-        if score <= -0.2:
-            keyword_results.append({
-                "Company": company,
-                "Headline": title,
-                "Sentiment": round(float(score), 3),
-                "Risk Level": "Negative Narrative"
-            })
-
-    if len(scores) == 0:
-        continue
-
-    DSS = np.mean(np.abs(scores))
-    SV = np.std(scores)
-    RR = (0.6 * SV) + (0.4 * DSS)
-
-    if RR >= 1.5:
-        risk_level = "High"
-    elif RR >= 0.7:
-        risk_level = "Medium"
-    else:
-        risk_level = "Low"
-
-    results.append({
-        "Company": company,
-        "DSS": round(float(DSS), 3),
-        "Sentiment Volatility": round(float(SV), 3),
-        "Market Volatility": round(float(market_volatility), 4),
-        "Reputation Risk": round(float(RR), 3),
-        "Risk Level": risk_level
-    })
-
-risk_df = pd.DataFrame(results)
-keyword_df = pd.DataFrame(keyword_results)
-
-if risk_df.empty:
-    st.error("No data available. Try different tickers.")
     st.stop()
 
-avg_dss = round(risk_df["DSS"].mean(), 3)
-avg_rr = round(risk_df["Reputation Risk"].mean(), 3)
-avg_sv = round(risk_df["Sentiment Volatility"].mean(), 3)
 
-col1, col2, col3, col4 = st.columns(4)
+def has_value(value):
+    text = str(value).strip()
+    return bool(text) and text.lower() != "nan"
 
-col1.metric("Average DSS", avg_dss)
-col2.metric("Average Reputation Risk", avg_rr)
-col3.metric("Average Sentiment Volatility", avg_sv)
-col4.metric("Companies Monitored", len(risk_df))
 
-st.subheader("Company Risk Ranking")
+def score_entity(row):
+    priority_score = {
+        "Critical": 85,
+        "High": 70,
+        "Medium": 50,
+        "Low": 30,
+    }.get(row["Priority"], 45)
 
-ranking_df = risk_df.sort_values(
-    by="Reputation Risk",
-    ascending=False
-)
+    type_score = {
+        "Company": 65,
+        "International_Organization": 75,
+        "University": 60,
+        "Government": 70,
+    }.get(row["Entity_Type"], 55)
 
-ranking_df["Rank"] = range(1, len(ranking_df) + 1)
+    source_score = {
+        "Financial": 75,
+        "Institutional": 65,
+        "Government": 70,
+    }.get(row["Data_Source_Type"], 55)
 
-st.dataframe(
-    ranking_df,
-    use_container_width=True
-)
+    data_fields = [
+        row["News_Query"],
+        row["Google_Trends_Query"],
+        row["YouTube_Query"],
+        row["Website"],
+        row["Ticker"],
+        row["CIK"],
+    ]
 
-st.subheader("Risk Alert Engine")
-
-for _, row in ranking_df.iterrows():
-
-    company = row["Company"]
-    rr = row["Reputation Risk"]
-
-    if rr >= 1.5:
-        st.error(f"{company}: HIGH REPUTATION RISK DETECTED")
-    elif rr >= 0.7:
-        st.warning(f"{company}: MODERATE REPUTATION RISK")
-    else:
-        st.success(f"{company}: LOW REPUTATION RISK")
-
-st.subheader("Top Negative Narratives")
-
-if keyword_df.empty:
-    st.info("No high-risk negative narratives detected.")
-else:
-    negative_df = keyword_df.sort_values(
-        by="Sentiment"
-    ).head(10)
-
-    st.dataframe(
-        negative_df,
-        use_container_width=True
+    readiness = sum(
+        1
+        for value in data_fields
+        if has_value(value)
     )
 
-st.subheader("Executive Intelligence Insights")
+    readiness_score = round(
+        readiness / len(data_fields) * 100,
+        2,
+    )
 
-for _, row in ranking_df.iterrows():
+    rii = round(
+        (
+            priority_score * 0.35
+            + source_score * 0.25
+            + readiness_score * 0.25
+            + type_score * 0.15
+        ),
+        2,
+    )
 
-    company = row["Company"]
-    rr = row["Reputation Risk"]
+    oli = round(
+        (
+            type_score * 0.45
+            + source_score * 0.25
+            + readiness_score * 0.20
+            + priority_score * 0.10
+        ),
+        2,
+    )
 
-    if rr >= 1.5:
-        insight = (
-            f"{company} demonstrates severe reputational instability "
-            f"driven by elevated sentiment volatility and negative narrative exposure."
+    search = 75 if has_value(row["Google_Trends_Query"]) else 35
+    social = 70 if has_value(row["YouTube_Query"]) else 35
+
+    crisis = round(
+        (
+            priority_score * 0.40
+            + rii * 0.25
+            + search * 0.20
+            + social * 0.15
+        ),
+        2,
+    )
+
+    return {
+        "Entity": row["Entity_Name"],
+        "Short Name": row["Short_Name"],
+        "Type": row["Entity_Type"],
+        "Country": row["Country"],
+        "RII": rii,
+        "OLI": oli,
+        "Search": search,
+        "Social": social,
+        "Crisis": crisis,
+        "Data Readiness": readiness_score,
+    }
+
+
+sector = st.selectbox(
+    "Select Sector",
+    sorted(
+        df["Sector"]
+        .dropna()
+        .unique()
+        .tolist()
+    ),
+)
+
+sector_df = df[df["Sector"] == sector]
+
+if sector_df.empty:
+    st.warning("No entities found for this sector.")
+    st.stop()
+
+benchmark = [
+    score_entity(row)
+    for _, row in sector_df.iterrows()
+]
+
+benchmark_df = pd.DataFrame(benchmark)
+
+st.subheader("Sector Overview")
+
+k1, k2, k3, k4 = st.columns(4)
+
+k1.metric("Entities", len(benchmark_df))
+k2.metric("Avg RII", round(benchmark_df["RII"].mean(), 1))
+k3.metric("Avg OLI", round(benchmark_df["OLI"].mean(), 1))
+k4.metric("Avg Crisis", round(benchmark_df["Crisis"].mean(), 1))
+
+st.subheader("Sector Benchmark")
+
+st.dataframe(
+    benchmark_df,
+    use_container_width=True,
+    hide_index=True,
+)
+
+st.subheader("Sector Ranking")
+
+ranking = benchmark_df.copy()
+
+ranking["Composite Score"] = round(
+    (
+        ranking["RII"] * 0.30
+        + ranking["OLI"] * 0.30
+        + ranking["Search"] * 0.20
+        + ranking["Social"] * 0.20
+    ),
+    2,
+)
+
+ranking = ranking.sort_values(
+    by="Composite Score",
+    ascending=False,
+)
+
+st.dataframe(
+    ranking[
+        [
+            "Entity",
+            "Short Name",
+            "Composite Score",
+            "Data Readiness",
+        ]
+    ],
+    use_container_width=True,
+    hide_index=True,
+)
+
+st.subheader("Entity Comparison")
+
+entities = st.multiselect(
+    "Select Entities",
+    benchmark_df["Entity"].tolist(),
+    default=benchmark_df["Entity"].head(3).tolist(),
+)
+
+radar = go.Figure()
+
+for selected_entity in entities:
+    row = benchmark_df[
+        benchmark_df["Entity"] == selected_entity
+    ].iloc[0]
+
+    radar.add_trace(
+        go.Scatterpolar(
+            r=[
+                row["RII"],
+                row["OLI"],
+                row["Search"],
+                row["Social"],
+                row["Crisis"],
+            ],
+            theta=[
+                "RII",
+                "OLI",
+                "Search",
+                "Social",
+                "Crisis",
+            ],
+            fill="toself",
+            name=row["Short Name"],
         )
-    elif rr >= 0.7:
-        insight = (
-            f"{company} demonstrates moderate reputational pressure "
-            f"with increasing narrative volatility."
-        )
-    else:
-        insight = (
-            f"{company} currently maintains relatively stable reputation conditions "
-            f"with limited negative narrative escalation."
-        )
+    )
 
-    st.info(insight)
+radar.update_layout(
+    height=650,
+    polar=dict(
+        radialaxis=dict(
+            visible=True,
+            range=[0, 100],
+        )
+    ),
+)
+
+st.plotly_chart(radar, use_container_width=True)
+
+st.subheader("Competitive Position Matrix")
+
+matrix = go.Figure()
+
+matrix.add_trace(
+    go.Scatter(
+        x=benchmark_df["Search"],
+        y=benchmark_df["RII"],
+        mode="markers+text",
+        text=benchmark_df["Short Name"],
+        textposition="top center",
+        marker={
+            "size": benchmark_df["Data Readiness"] / 4 + 8,
+        },
+    )
+)
+
+matrix.update_layout(
+    xaxis_title="Search Visibility Readiness",
+    yaxis_title="Reputation Intelligence Score",
+    height=600,
+)
+
+st.plotly_chart(matrix, use_container_width=True)
+
+st.subheader("Executive Insights")
+
+leader = ranking.iloc[0]
+
+highest_risk = benchmark_df.sort_values(
+    by="Crisis",
+    ascending=False,
+).iloc[0]
+
+highest_readiness = benchmark_df.sort_values(
+    by="Data Readiness",
+    ascending=False,
+).iloc[0]
+
+st.success(f"Sector Leader: {leader['Short Name']}")
+st.warning(f"Highest Crisis Exposure: {highest_risk['Short Name']}")
+st.info(f"Best Real-Data Readiness: {highest_readiness['Short Name']}")
+
+st.info("""
+This version calculates sector intelligence from registry quality,
+priority, entity type, identifiers, and real-data readiness.
+
+Next improvement:
+
+- connect live RII outputs
+- connect live Google Trends outputs
+- connect live social intelligence outputs
+- store scores in a shared cache for all pages
+""")
