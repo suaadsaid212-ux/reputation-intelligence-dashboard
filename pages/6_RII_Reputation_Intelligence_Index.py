@@ -107,13 +107,9 @@ subjectivity = TextBlob(
 
 headlines.append(headline)
 
-sentiment_scores.append(
-    sentiment
-)
+sentiment_scores.append(sentiment)
 
-subjectivity_scores.append(
-    subjectivity
-)
+subjectivity_scores.append(subjectivity)
 ```
 
 if len(sentiment_scores) == 0:
@@ -155,13 +151,11 @@ try:
     if not stock.empty:
 
         stock["Returns"] = (
-            stock["Close"]
-            .pct_change()
+            stock["Close"].pct_change()
         )
 
         financial_volatility = (
-            stock["Returns"]
-            .std()
+            stock["Returns"].std()
         )
 
 except:
@@ -178,19 +172,11 @@ except:
 news_volume = len(headlines)
 
 negative_ratio = len(
-[
-s
-for s in sentiment_scores
-if s <= -0.3
-]
+[s for s in sentiment_scores if s <= -0.3]
 ) / len(sentiment_scores)
 
 positive_ratio = len(
-[
-s
-for s in sentiment_scores
-if s >= 0.3
-]
+[s for s in sentiment_scores if s >= 0.3]
 ) / len(sentiment_scores)
 
 sentiment_volatility = np.std(
@@ -250,19 +236,34 @@ min(100, rii)
 # ====================================
 
 if rii >= 81:
+
+```
 status = "🚨 Crisis Zone"
+```
 
 elif rii >= 61:
+
+```
 status = "🔴 High Risk"
+```
 
 elif rii >= 41:
+
+```
 status = "🟠 Vulnerable"
+```
 
 elif rii >= 21:
+
+```
 status = "🟡 Monitor"
+```
 
 else:
+
+```
 status = "🟢 Stable"
+```
 
 # ====================================
 
@@ -406,19 +407,15 @@ st.info(
 f"""
 Entity: {entity_name}
 
-```
 RII Score: {round(rii,2)}
 
 Status: {status}
 
-Exposure Score:
-{round(exposure_score,2)}
+Exposure Score: {round(exposure_score,2)}
 
-Vulnerability Score:
-{round(vulnerability_score,2)}
+Vulnerability Score: {round(vulnerability_score,2)}
 
-Resilience Score:
-{round(resilience_score,2)}
+Resilience Score: {round(resilience_score,2)}
 
 This score feeds directly into:
 
@@ -430,6 +427,4 @@ This score feeds directly into:
 
 • Global Risk Monitoring
 """
-```
-
 )
