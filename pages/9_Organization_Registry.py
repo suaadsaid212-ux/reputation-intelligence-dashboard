@@ -2,142 +2,216 @@ import streamlit as st
 import pandas as pd
 
 st.set_page_config(
-    page_title="Organization Registry",
-    layout="wide"
+page_title="Organization Registry",
+page_icon="🏢",
+layout="wide"
 )
 
 st.title("🏢 Organization Registry")
 
-# Load CSV
+st.markdown("""
+Central repository of organizations, governments,
+universities, NGOs and international institutions
+monitored by the Reputation Intelligence Platform.
+""")
+
+# =====================================
+
+# LOAD REGISTRY
+
+# =====================================
 
 try:
-    df = pd.read_csv(
-        "config/entity_registry.csv",
-        encoding="utf-8-sig"
-    )
+
+```
+df = pd.read_csv(
+    "config/entity_registry.csv",
+    encoding="utf-8-sig"
+)
+```
 
 except Exception as e:
 
-    st.error("CSV Error")
+```
+st.error("Unable to load entity_registry.csv")
 
-    st.code(str(e))
+st.code(str(e))
 
-    st.stop()
+st.stop()
+```
 
-# Show success
+# =====================================
 
-st.success(
-    f"Loaded {len(df)} entities successfully"
+# OVERVIEW
+
+# =====================================
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric(
+"Total Entities",
+len(df)
 )
 
-# Filters
+col2.metric(
+"Countries",
+df["Country"].nunique()
+)
 
-col1, col2, col3 = st.columns(3)
+col3.metric(
+"Sectors",
+df["Sector"].nunique()
+)
 
-with col1:
-    entity_type = st.selectbox(
-        "Entity Type",
-        ["All"] + sorted(
-            df["Entity_Type"].dropna().unique().tolist()
-        )
-    )
+col4.metric(
+"Entity Types",
+df["Entity_Type"].nunique()
+)
 
-with col2:
-    country = st.selectbox(
-        "Country",
-        ["All"] + sorted(
-            df["Country"].dropna().unique().tolist()
-        )
-    )
+st.divider()
 
-with col3:
-    sector = st.selectbox(
-        "Sector",
-        ["All"] + sorted(
-            df["Sector"].dropna().unique().tolist()
-        )
-    )
+# =====================================
+
+# FILTERS
+
+# =====================================
+
+c1, c2, c3 = st.columns(3)
+
+with c1:
+
+```
+entity_type = st.selectbox(
+    "Entity Type",
+    ["All"] + sorted(
+        df["Entity_Type"].dropna().unique()
+    ).tolist()
+)
+```
+
+with c2:
+
+```
+country = st.selectbox(
+    "Country",
+    ["All"] + sorted(
+        df["Country"].dropna().unique()
+    ).tolist()
+)
+```
+
+with c3:
+
+```
+sector = st.selectbox(
+    "Sector",
+    ["All"] + sorted(
+        df["Sector"].dropna().unique()
+    ).tolist()
+)
+```
 
 filtered = df.copy()
 
 if entity_type != "All":
-    filtered = filtered[
-        filtered["Entity_Type"] == entity_type
-    ]
+filtered = filtered[
+filtered["Entity_Type"] == entity_type
+]
 
 if country != "All":
-    filtered = filtered[
-        filtered["Country"] == country
-    ]
+filtered = filtered[
+filtered["Country"] == country
+]
 
 if sector != "All":
-    filtered = filtered[
-        filtered["Sector"] == sector
-    ]
+filtered = filtered[
+filtered["Sector"] == sector
+]
 
-# Search
+# =====================================
+
+# SEARCH
+
+# =====================================
 
 search = st.text_input(
-    "🔍 Search Entity"
+"🔍 Search Entity"
 )
 
 if search:
-    filtered = filtered[
-        filtered["Entity_Name"].str.contains(
-            search,
-            case=False,
-            na=False
-        )
-    ]
 
-# Table
+```
+filtered = filtered[
+    filtered["Entity_Name"].str.contains(
+        search,
+        case=False,
+        na=False
+    )
+]
+```
+
+st.divider()
+
+# =====================================
+
+# REGISTRY TABLE
+
+# =====================================
 
 st.subheader("Registry")
 
 st.dataframe(
-    filtered,
-    use_container_width=True
+filtered,
+use_container_width=True
 )
 
-# Profile
+# =====================================
+
+# ENTITY PROFILE
+
+# =====================================
 
 if not filtered.empty:
 
-    selected = st.selectbox(
-        "Select Entity",
-        filtered["Entity_Name"]
-    )
+```
+selected = st.selectbox(
+    "Select Entity",
+    filtered["Entity_Name"]
+)
 
-    profile = filtered[
-        filtered["Entity_Name"] == selected
-    ].iloc[0]
+profile = filtered[
+    filtered["Entity_Name"] == selected
+].iloc[0]
 
-    st.subheader("Entity Profile")
+st.divider()
 
-    col1, col2, col3, col4 = st.columns(4)
+st.subheader("Entity Profile")
 
-    col1.metric(
-        "Type",
-        profile["Entity_Type"]
-    )
+c1, c2, c3, c4 = st.columns(4)
 
-    col2.metric(
-        "Country",
-        profile["Country"]
-    )
+c1.metric(
+    "Entity Type",
+    profile["Entity_Type"]
+)
 
-    col3.metric(
-        "Sector",
-        profile["Sector"]
-    )
+c2.metric(
+    "Country",
+    profile["Country"]
+)
 
-    col4.metric(
-        "Priority",
-        profile["Priority"]
-    )
+c3.metric(
+    "Sector",
+    profile["Sector"]
+)
 
-    st.write("### Details")
+c4.metric(
+    "Priority",
+    profile["Priority"]
+)
 
-    st.json(
-        profile.to_dict()
-    )
+st.write("### Detailed Information")
+
+st.json(
+    profile.to_dict()
+)
+```
