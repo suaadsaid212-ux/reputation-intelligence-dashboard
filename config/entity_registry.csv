@@ -1,1 +1,215 @@
+import pandas as pd
+import yfinance as yf
 
+# ==========================================
+# STEP 1: COMPANY TICKERS
+# ==========================================
+
+tickers = [
+    "TSLA",
+    "MSFT",
+    "AAPL",
+    "GOOGL",
+    "AMZN",
+    "META",
+    "NVDA",
+    "BP",
+    "SHEL",
+    "HSBA.L"
+]
+
+rows = []
+
+print("Collecting Yahoo Finance data...")
+
+for ticker in tickers:
+
+    try:
+
+        info = yf.Ticker(ticker).info
+
+        rows.append({
+
+            "Entity_ID": ticker,
+
+            "Entity_Name": info.get("longName", ticker),
+
+            "Short_Name": ticker,
+
+            "Entity_Type": "Company",
+
+            "Ticker": ticker,
+
+            "Country": info.get("country", ""),
+
+            "Sector": info.get("sector", ""),
+
+            "Industry": info.get("industry", ""),
+
+            "Data_Source_Type": "Financial",
+
+            "Priority": "High"
+
+        })
+
+        print(f"Added {ticker}")
+
+    except Exception as e:
+
+        print(f"Error: {ticker} -> {e}")
+
+# ==========================================
+# STEP 2: MANUAL ENTITIES
+# ==========================================
+
+manual_entities = [
+
+    {
+        "Entity_ID": "UNICEF",
+        "Entity_Name": "United Nations Children's Fund",
+        "Short_Name": "UNICEF",
+        "Entity_Type": "International Organization",
+        "Ticker": "",
+        "Country": "Global",
+        "Sector": "Development",
+        "Industry": "Humanitarian",
+        "Data_Source_Type": "Institutional",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "WHO",
+        "Entity_Name": "World Health Organization",
+        "Short_Name": "WHO",
+        "Entity_Type": "International Organization",
+        "Ticker": "",
+        "Country": "Global",
+        "Sector": "Health",
+        "Industry": "Public Health",
+        "Data_Source_Type": "Institutional",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "UNDP",
+        "Entity_Name": "United Nations Development Programme",
+        "Short_Name": "UNDP",
+        "Entity_Type": "International Organization",
+        "Ticker": "",
+        "Country": "Global",
+        "Sector": "Development",
+        "Industry": "Humanitarian",
+        "Data_Source_Type": "Institutional",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "UKGOV",
+        "Entity_Name": "UK Government",
+        "Short_Name": "UK Gov",
+        "Entity_Type": "Government",
+        "Ticker": "",
+        "Country": "United Kingdom",
+        "Sector": "Public Sector",
+        "Industry": "Government",
+        "Data_Source_Type": "Government",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "OMANGOV",
+        "Entity_Name": "Oman Government",
+        "Short_Name": "Oman Gov",
+        "Entity_Type": "Government",
+        "Ticker": "",
+        "Country": "Oman",
+        "Sector": "Public Sector",
+        "Industry": "Government",
+        "Data_Source_Type": "Government",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "OQ",
+        "Entity_Name": "OQ Group",
+        "Short_Name": "OQ",
+        "Entity_Type": "Company",
+        "Ticker": "",
+        "Country": "Oman",
+        "Sector": "Energy",
+        "Industry": "Oil & Gas",
+        "Data_Source_Type": "Institutional",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "OMANTEL",
+        "Entity_Name": "Omantel",
+        "Short_Name": "Omantel",
+        "Entity_Type": "Company",
+        "Ticker": "",
+        "Country": "Oman",
+        "Sector": "Telecommunications",
+        "Industry": "Telecom",
+        "Data_Source_Type": "Institutional",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "CARDIFF",
+        "Entity_Name": "Cardiff University",
+        "Short_Name": "Cardiff",
+        "Entity_Type": "University",
+        "Ticker": "",
+        "Country": "United Kingdom",
+        "Sector": "Education",
+        "Industry": "Higher Education",
+        "Data_Source_Type": "Institutional",
+        "Priority": "High"
+    },
+
+    {
+        "Entity_ID": "SQU",
+        "Entity_Name": "Sultan Qaboos University",
+        "Short_Name": "SQU",
+        "Entity_Type": "University",
+        "Ticker": "",
+        "Country": "Oman",
+        "Sector": "Education",
+        "Industry": "Higher Education",
+        "Data_Source_Type": "Institutional",
+        "Priority": "High"
+    },
+{
+    "Entity_ID": "KFU",
+    "Entity_Name": "Kazan Federal University",
+    "Short_Name": "KFU",
+    "Entity_Type": "University",
+    "Ticker": "",
+    "Country": "Russia",
+    "Sector": "Education",
+    "Industry": "Higher Education",
+    "Data_Source_Type": "Institutional",
+    "Priority": "High"
+}
+
+]
+
+rows.extend(manual_entities)
+
+# ==========================================
+# STEP 3: SAVE CSV
+# ==========================================
+
+df = pd.DataFrame(rows)
+
+df.to_csv(
+    "entity_registry.csv",
+    index=False,
+    encoding="utf-8-sig"
+)
+
+print("\nRegistry Created Successfully")
+print(df.head())
+
+print(f"\nTotal Entities: {len(df)}")
