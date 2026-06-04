@@ -13,9 +13,21 @@ def get_entity():
 
     df = load_registry()
 
+    if df.empty:
+
+        st.error(
+            "Registry file is empty."
+        )
+
+        st.stop()
+
     selected = st.sidebar.selectbox(
         "🏢 Select Entity",
-        df["Entity_Name"]
+        sorted(
+            df["Entity_Name"]
+            .dropna()
+            .unique()
+        )
     )
 
     entity = df[
